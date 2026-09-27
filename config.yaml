@@ -1,0 +1,46 @@
+# STK-14 Cage Row Vision — Phase 1 bench configuration
+#
+# Every value marked MEASURE is a placeholder until Ben measures the real bench.
+# When they are all real, set layout_confirmed: true (the overlay stops warning).
+
+units: in                 # all lengths below are in these units (in | mm)
+layout_confirmed: false
+
+camera:
+  index: 0                # `uv run cage-vision list-cameras` shows what is attached
+  backend: dshow          # dshow | msmf | any
+  width: 1920
+  height: 1080
+  lock_settings: true     # disable auto exposure / focus / white balance where supported
+  exposure: null          # set once lighting is final (camera-specific units; DirectShow is log2 seconds, e.g. -6)
+  focus: null
+  white_balance: null
+  warmup_frames: 10
+
+markers:
+  dictionary: DICT_4X4_50
+  # World coordinates of each marker CENTER. MEASURE.
+  # Convention used here: marker 0 is the origin, +X runs toward marker 1,
+  # +Y runs toward marker 3. Any convention works as long as the numbers are real.
+  positions:
+    0: [0.0, 0.0]
+    1: [30.0, 0.0]
+    2: [30.0, 20.0]
+    3: [0.0, 20.0]
+  size: 2.0               # printed black square side. MEASURE the print (printers scale).
+  size_tolerance: 0.25    # fraction
+
+paper:
+  length: 11.0            # MEASURE (long side)
+  width: 8.5              # MEASURE (short side)
+  size_tolerance: 0.5     # reject objects whose measured L/W differ from nominal by more than this
+  polarity: bright        # paper lighter than table
+  threshold: otsu
+  fixed_threshold: 128
+  min_rectangularity: 0.92
+  border_margin_px: 4
+  marker_mask_pad: 0.35
+
+output:
+  directory: runs
+  frames_per_placement: 10

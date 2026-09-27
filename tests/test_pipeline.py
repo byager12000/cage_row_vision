@@ -1,0 +1,112 @@
+"""End-to-end on synthetic scenes with exact ground truth.
+
+Tolerances here are regression guards for the software math on clean-ish
+synthetic images, not claims about real-bench accuracy.
+"""
+
+import copy
+import csv
+
+import numpy as np
+import pytest
+
+from cage_vision.geometry import angle_diff
+from cage_vision.logger import RunLogger, summarize
+from cage_vision.pipeline import Pipeline
+from cage_vision.synth import random_pose
+
+POS_TOL = 0.02   # in
+ANG_TOL = 0.1    # deg
+SIZE_TOL = 0.02  # in
+
+
+@pytest.mark.parametrize("seed", range(8))
+def test_valid_placements_are_accurate(pipe, scene, layout, seed):
+    pose = random_pose(layout, np.random.default_rng(100 + seed))
+    m, _, _ = pipe.process(scene(pose, seed=seed))
+    assert m.valid, m.status_text
+    assert m.center_x == pytest.approx(pose[0], abs=POS_TOL)
+    assert m.center_y == pytest.approx(pose[1], abs=POS_TOL)
+    assert abs(angle_diff(m.rotation_deg, pose[2])) < ANG_TOL
+    assert m.length == pytest.approx(11.0, abs=SIZE_TOL)
+    assert m.width == pytest.approx(8.5, abs=SIZE_TOL)
+
+
+def _assert_no_values(m):
+    assert not m.valid
+    assert m.center_x is None and m.center_y is None and m.rotation_deg is None
+
+
+def test_missing_marker_invalidates_calibration(pipe, scene):
+    m, _, _ = pipe.process(scene(hide_markers=[1]))
+    assert not m.calibration_ok and "not found" in m.calibration_reason
+    _assert_no_values(m)
+
+
+def test_no_paper_reports_not_detected(pipe, scene):
+    m, _, _ = pipe.process(scene(pose=None))
+    assert m.calibration_ok and not m.object_detected
+    _assert_no_values(m)
+
+
+def test_paper_partly_outside_area_is_rejected(pipe, scene):
+    m, _, _ = pipe.process(scene(pose=(29.0, 10.0, 0.0)))
+    _assert_no_values(m)
+
+
+def test_paper_over_a_marker_is_rejected(pipe, scene):
+    m, _, _ = pipe.process(scene(pose=(4.0, 4.0, 30.0)))
+    _assert_no_values(m)
+
+
+def test_two_papers_is_ambiguous(pipe, scene):
+    m, _, _ = pipe.process(scene(pose=(8.0, 10.0, 90.0), extra_papers=[(22.0, 10.0, 90.0)]))
+    assert "ambiguous" in m.detection_reason
+    _assert_no_values(m)
+
+
+def test_wrong_size_object_is_rejected(cfg, scene):
+    c = copy.deepcopy(cfg)
+    c.paper.length, c.paper.width = 14.0, 8.5   # config says legal size, table has letter
+    m, _, _ = Pipeline(c).process(scene())
+    _assert_no_values(m)
+    assert "size" in m.detection_reason
+
+
+def test_wrong_marker_layout_invalidates_calibration(cfg, scene):
+    c = copy.deepcopy(cfg)
+    c.markers.positions = {0: (0, 0), 1: (60, 0), 2: (60, 40), 3: (0, 40)}  # 2x too big
+    m, _, _ = Pipeline(c).process(scene())
+    assert not m.calibration_ok and "marker size implausible" in m.calibration_reason
+    _assert_no_values(m)
+
+
+def test_no_stale_values_after_a_good_frame(pipe, scene):
+    good, _, _ = pipe.process(scene())
+    assert good.valid
+    for bad_img in (scene(pose=None), scene(hide_markers=[0])):
+        m, _, _ = pipe.process(bad_img)
+        _assert_no_values(m)
+
+
+def test_blank_frame_is_safe(pipe):
+    m, _, _ = pipe.process(np.zeros((1080, 1920, 3), np.uint8))
+    assert not m.calibration_ok
+    _assert_no_values(m)
+
+
+def test_logger_and_report(tmp_path, pipe, scene, layout):
+    log = RunLogger(tmp_path, "t")
+    pose = random_pose(layout, np.random.default_rng(7))
+    for f in range(3):
+        m, _, _ = pipe.process(scene(pose, seed=f))
+        log.log(m, 1, f, "synth", gt=pose)
+    m, _, _ = pipe.process(scene(pose=None))
+    log.log(m, 2, 0, "synth")
+    log.close()
+    rows = list(csv.DictReader(open(log.csv_path)))
+    assert rows[-1]["center_x"] == ""            # invalid frame logs blank, not a number
+    rep = summarize(log.dir, 11.0, 8.5)
+    assert rep["placements"] == 2 and rep["placements_detected"] == 1
+    assert rep["position_error_vs_ground_truth"]["radial"]["max_abs"] < POS_TOL
+    assert (log.dir / "report.md").exists()

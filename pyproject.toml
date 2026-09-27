@@ -1,0 +1,28 @@
+[project]
+name = "cage-vision"
+version = "0.1.0"
+description = "STK-14 Cage Row Vision - Phase 1 paper detection bench prototype"
+authors = [
+    { name = "Ben", email = "byager12000@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "numpy<2.3",
+    "opencv-contrib-python==4.10.0.84",
+    "pyyaml>=6.0.3",
+]
+
+[project.scripts]
+cage-vision = "cage_vision.main:main"
+
+[build-system]
+requires = ["uv_build>=0.12.17,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

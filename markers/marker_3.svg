@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="8.5in" height="11.0in" viewBox="0 0 8.5 11.0">
+<rect width="8.5" height="11.0" fill="white"/>
+<g fill="black" shape-rendering="crispEdges">
+<rect x="3.25000" y="4.50000" width="0.33333" height="0.33333"/>
+<rect x="3.58333" y="4.50000" width="0.33333" height="0.33333"/>
+<rect x="3.91667" y="4.50000" width="0.33333" height="0.33333"/>
+<rect x="4.25000" y="4.50000" width="0.33333" height="0.33333"/>
+<rect x="4.58333" y="4.50000" width="0.33333" height="0.33333"/>
+<rect x="4.91667" y="4.50000" width="0.33333" height="0.33333"/>
+<rect x="3.25000" y="4.83333" width="0.33333" height="0.33333"/>
+<rect x="3.91667" y="4.83333" width="0.33333" height="0.33333"/>
+<rect x="4.25000" y="4.83333" width="0.33333" height="0.33333"/>
+<rect x="4.91667" y="4.83333" width="0.33333" height="0.33333"/>
+<rect x="3.25000" y="5.16667" width="0.33333" height="0.33333"/>
+<rect x="3.91667" y="5.16667" width="0.33333" height="0.33333"/>
+<rect x="4.25000" y="5.16667" width="0.33333" height="0.33333"/>
+<rect x="4.91667" y="5.16667" width="0.33333" height="0.33333"/>
+<rect x="3.25000" y="5.50000" width="0.33333" height="0.33333"/>
+<rect x="3.58333" y="5.50000" width="0.33333" height="0.33333"/>
+<rect x="4.25000" y="5.50000" width="0.33333" height="0.33333"/>
+<rect x="4.58333" y="5.50000" width="0.33333" height="0.33333"/>
+<rect x="4.91667" y="5.50000" width="0.33333" height="0.33333"/>
+<rect x="3.25000" y="5.83333" width="0.33333" height="0.33333"/>
+<rect x="3.58333" y="5.83333" width="0.33333" height="0.33333"/>
+<rect x="4.58333" y="5.83333" width="0.33333" height="0.33333"/>
+<rect x="4.91667" y="5.83333" width="0.33333" height="0.33333"/>
+<rect x="3.25000" y="6.16667" width="0.33333" height="0.33333"/>
+<rect x="3.58333" y="6.16667" width="0.33333" height="0.33333"/>
+<rect x="3.91667" y="6.16667" width="0.33333" height="0.33333"/>
+<rect x="4.25000" y="6.16667" width="0.33333" height="0.33333"/>
+<rect x="4.58333" y="6.16667" width="0.33333" height="0.33333"/>
+<rect x="4.91667" y="6.16667" width="0.33333" height="0.33333"/>
+</g>
+<g stroke="black" stroke-width="0.02">
+<line x1="4.2500" y1="3.8500" x2="4.2500" y2="4.3500"/>
+<line x1="4.2500" y1="6.6500" x2="4.2500" y2="7.1500"/>
+<line x1="2.6000" y1="5.5000" x2="3.1000" y2="5.5000"/>
+<line x1="5.4000" y1="5.5000" x2="5.9000" y2="5.5000"/>
+</g>
+<text x="0.75" y="1.0" font-family="Arial" font-size="0.28">Marker ID 3 - DICT_4X4_50</text>
+<text x="0.75" y="1.4" font-family="Arial" font-size="0.18">Black square = 2.0 in. Print at 100% / Actual size (no fit-to-page), then measure it.</text>
+<text x="0.75" y="1.7" font-family="Arial" font-size="0.18">Tick marks point to the marker center - measure THAT point for config markers.positions.</text>
+</svg>
