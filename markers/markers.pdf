@@ -1,0 +1,291 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Length 2384 >>
+stream
+0 g 0 G
+198.000 468.000 36.000 36.000 re
+234.000 468.000 36.000 36.000 re
+270.000 468.000 36.000 36.000 re
+306.000 468.000 36.000 36.000 re
+342.000 468.000 36.000 36.000 re
+378.000 468.000 36.000 36.000 re
+198.000 432.000 36.000 36.000 re
+270.000 432.000 36.000 36.000 re
+378.000 432.000 36.000 36.000 re
+198.000 396.000 36.000 36.000 re
+234.000 396.000 36.000 36.000 re
+306.000 396.000 36.000 36.000 re
+378.000 396.000 36.000 36.000 re
+198.000 360.000 36.000 36.000 re
+234.000 360.000 36.000 36.000 re
+270.000 360.000 36.000 36.000 re
+378.000 360.000 36.000 36.000 re
+198.000 324.000 36.000 36.000 re
+234.000 324.000 36.000 36.000 re
+270.000 324.000 36.000 36.000 re
+342.000 324.000 36.000 36.000 re
+378.000 324.000 36.000 36.000 re
+198.000 288.000 36.000 36.000 re
+234.000 288.000 36.000 36.000 re
+270.000 288.000 36.000 36.000 re
+306.000 288.000 36.000 36.000 re
+342.000 288.000 36.000 36.000 re
+378.000 288.000 36.000 36.000 re
+f
+1.44 w
+306.000 590.400 m 306.000 547.200 l S
+306.000 244.800 m 306.000 201.600 l S
+111.600 396.000 m 154.800 396.000 l S
+457.200 396.000 m 500.400 396.000 l S
+90.000 100.800 m 522.000 100.800 l S
+90.000 111.600 m 90.000 90.000 l S
+BT /F1 9 Tf 87.12 72.00 Td (0) Tj ET
+162.000 111.600 m 162.000 90.000 l S
+BT /F1 9 Tf 159.12 72.00 Td (1) Tj ET
+234.000 111.600 m 234.000 90.000 l S
+BT /F1 9 Tf 231.12 72.00 Td (2) Tj ET
+306.000 111.600 m 306.000 90.000 l S
+BT /F1 9 Tf 303.12 72.00 Td (3) Tj ET
+378.000 111.600 m 378.000 90.000 l S
+BT /F1 9 Tf 375.12 72.00 Td (4) Tj ET
+450.000 111.600 m 450.000 90.000 l S
+BT /F1 9 Tf 447.12 72.00 Td (5) Tj ET
+522.000 111.600 m 522.000 90.000 l S
+BT /F1 9 Tf 519.12 72.00 Td (6) Tj ET
+BT /F1 22 Tf 54.00 720.00 Td (Marker ID 0) Tj ET
+BT /F1 10 Tf 54.00 694.80 Td (DICT_4X4_50   |   STK-14 Cage Row Vision reference marker) Tj ET
+BT /F1 11 Tf 54.00 666.00 Td (Black square = 3 in. Print at 100% / Actual size - NOT fit to page.) Tj ET
+BT /F1 11 Tf 54.00 648.00 Td (Measure the printed black square and put that value in config.yaml \(markers.size\).) Tj ET
+BT /F1 11 Tf 54.00 630.00 Td (Keep at least 1/2 in of white paper around the black square if you trim the page.) Tj ET
+BT /F1 11 Tf 54.00 172.80 Td (Tick marks point to the marker CENTER - that is the point to measure for markers.positions.) Tj ET
+BT /F1 11 Tf 90.00 54.00 Td (This bar must measure exactly 6.00 in. If it does not, printer scaling is on.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 2384 >>
+stream
+0 g 0 G
+198.000 468.000 36.000 36.000 re
+234.000 468.000 36.000 36.000 re
+270.000 468.000 36.000 36.000 re
+306.000 468.000 36.000 36.000 re
+342.000 468.000 36.000 36.000 re
+378.000 468.000 36.000 36.000 re
+198.000 432.000 36.000 36.000 re
+234.000 432.000 36.000 36.000 re
+270.000 432.000 36.000 36.000 re
+306.000 432.000 36.000 36.000 re
+342.000 432.000 36.000 36.000 re
+378.000 432.000 36.000 36.000 re
+198.000 396.000 36.000 36.000 re
+378.000 396.000 36.000 36.000 re
+198.000 360.000 36.000 36.000 re
+270.000 360.000 36.000 36.000 re
+306.000 360.000 36.000 36.000 re
+378.000 360.000 36.000 36.000 re
+198.000 324.000 36.000 36.000 re
+270.000 324.000 36.000 36.000 re
+342.000 324.000 36.000 36.000 re
+378.000 324.000 36.000 36.000 re
+198.000 288.000 36.000 36.000 re
+234.000 288.000 36.000 36.000 re
+270.000 288.000 36.000 36.000 re
+306.000 288.000 36.000 36.000 re
+342.000 288.000 36.000 36.000 re
+378.000 288.000 36.000 36.000 re
+f
+1.44 w
+306.000 590.400 m 306.000 547.200 l S
+306.000 244.800 m 306.000 201.600 l S
+111.600 396.000 m 154.800 396.000 l S
+457.200 396.000 m 500.400 396.000 l S
+90.000 100.800 m 522.000 100.800 l S
+90.000 111.600 m 90.000 90.000 l S
+BT /F1 9 Tf 87.12 72.00 Td (0) Tj ET
+162.000 111.600 m 162.000 90.000 l S
+BT /F1 9 Tf 159.12 72.00 Td (1) Tj ET
+234.000 111.600 m 234.000 90.000 l S
+BT /F1 9 Tf 231.12 72.00 Td (2) Tj ET
+306.000 111.600 m 306.000 90.000 l S
+BT /F1 9 Tf 303.12 72.00 Td (3) Tj ET
+378.000 111.600 m 378.000 90.000 l S
+BT /F1 9 Tf 375.12 72.00 Td (4) Tj ET
+450.000 111.600 m 450.000 90.000 l S
+BT /F1 9 Tf 447.12 72.00 Td (5) Tj ET
+522.000 111.600 m 522.000 90.000 l S
+BT /F1 9 Tf 519.12 72.00 Td (6) Tj ET
+BT /F1 22 Tf 54.00 720.00 Td (Marker ID 1) Tj ET
+BT /F1 10 Tf 54.00 694.80 Td (DICT_4X4_50   |   STK-14 Cage Row Vision reference marker) Tj ET
+BT /F1 11 Tf 54.00 666.00 Td (Black square = 3 in. Print at 100% / Actual size - NOT fit to page.) Tj ET
+BT /F1 11 Tf 54.00 648.00 Td (Measure the printed black square and put that value in config.yaml \(markers.size\).) Tj ET
+BT /F1 11 Tf 54.00 630.00 Td (Keep at least 1/2 in of white paper around the black square if you trim the page.) Tj ET
+BT /F1 11 Tf 54.00 172.80 Td (Tick marks point to the marker CENTER - that is the point to measure for markers.positions.) Tj ET
+BT /F1 11 Tf 90.00 54.00 Td (This bar must measure exactly 6.00 in. If it does not, printer scaling is on.) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 2384 >>
+stream
+0 g 0 G
+198.000 468.000 36.000 36.000 re
+234.000 468.000 36.000 36.000 re
+270.000 468.000 36.000 36.000 re
+306.000 468.000 36.000 36.000 re
+342.000 468.000 36.000 36.000 re
+378.000 468.000 36.000 36.000 re
+198.000 432.000 36.000 36.000 re
+234.000 432.000 36.000 36.000 re
+270.000 432.000 36.000 36.000 re
+378.000 432.000 36.000 36.000 re
+198.000 396.000 36.000 36.000 re
+234.000 396.000 36.000 36.000 re
+270.000 396.000 36.000 36.000 re
+378.000 396.000 36.000 36.000 re
+198.000 360.000 36.000 36.000 re
+234.000 360.000 36.000 36.000 re
+270.000 360.000 36.000 36.000 re
+342.000 360.000 36.000 36.000 re
+378.000 360.000 36.000 36.000 re
+198.000 324.000 36.000 36.000 re
+306.000 324.000 36.000 36.000 re
+378.000 324.000 36.000 36.000 re
+198.000 288.000 36.000 36.000 re
+234.000 288.000 36.000 36.000 re
+270.000 288.000 36.000 36.000 re
+306.000 288.000 36.000 36.000 re
+342.000 288.000 36.000 36.000 re
+378.000 288.000 36.000 36.000 re
+f
+1.44 w
+306.000 590.400 m 306.000 547.200 l S
+306.000 244.800 m 306.000 201.600 l S
+111.600 396.000 m 154.800 396.000 l S
+457.200 396.000 m 500.400 396.000 l S
+90.000 100.800 m 522.000 100.800 l S
+90.000 111.600 m 90.000 90.000 l S
+BT /F1 9 Tf 87.12 72.00 Td (0) Tj ET
+162.000 111.600 m 162.000 90.000 l S
+BT /F1 9 Tf 159.12 72.00 Td (1) Tj ET
+234.000 111.600 m 234.000 90.000 l S
+BT /F1 9 Tf 231.12 72.00 Td (2) Tj ET
+306.000 111.600 m 306.000 90.000 l S
+BT /F1 9 Tf 303.12 72.00 Td (3) Tj ET
+378.000 111.600 m 378.000 90.000 l S
+BT /F1 9 Tf 375.12 72.00 Td (4) Tj ET
+450.000 111.600 m 450.000 90.000 l S
+BT /F1 9 Tf 447.12 72.00 Td (5) Tj ET
+522.000 111.600 m 522.000 90.000 l S
+BT /F1 9 Tf 519.12 72.00 Td (6) Tj ET
+BT /F1 22 Tf 54.00 720.00 Td (Marker ID 2) Tj ET
+BT /F1 10 Tf 54.00 694.80 Td (DICT_4X4_50   |   STK-14 Cage Row Vision reference marker) Tj ET
+BT /F1 11 Tf 54.00 666.00 Td (Black square = 3 in. Print at 100% / Actual size - NOT fit to page.) Tj ET
+BT /F1 11 Tf 54.00 648.00 Td (Measure the printed black square and put that value in config.yaml \(markers.size\).) Tj ET
+BT /F1 11 Tf 54.00 630.00 Td (Keep at least 1/2 in of white paper around the black square if you trim the page.) Tj ET
+BT /F1 11 Tf 54.00 172.80 Td (Tick marks point to the marker CENTER - that is the point to measure for markers.positions.) Tj ET
+BT /F1 11 Tf 90.00 54.00 Td (This bar must measure exactly 6.00 in. If it does not, printer scaling is on.) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 2417 >>
+stream
+0 g 0 G
+198.000 468.000 36.000 36.000 re
+234.000 468.000 36.000 36.000 re
+270.000 468.000 36.000 36.000 re
+306.000 468.000 36.000 36.000 re
+342.000 468.000 36.000 36.000 re
+378.000 468.000 36.000 36.000 re
+198.000 432.000 36.000 36.000 re
+270.000 432.000 36.000 36.000 re
+306.000 432.000 36.000 36.000 re
+378.000 432.000 36.000 36.000 re
+198.000 396.000 36.000 36.000 re
+270.000 396.000 36.000 36.000 re
+306.000 396.000 36.000 36.000 re
+378.000 396.000 36.000 36.000 re
+198.000 360.000 36.000 36.000 re
+234.000 360.000 36.000 36.000 re
+306.000 360.000 36.000 36.000 re
+342.000 360.000 36.000 36.000 re
+378.000 360.000 36.000 36.000 re
+198.000 324.000 36.000 36.000 re
+234.000 324.000 36.000 36.000 re
+342.000 324.000 36.000 36.000 re
+378.000 324.000 36.000 36.000 re
+198.000 288.000 36.000 36.000 re
+234.000 288.000 36.000 36.000 re
+270.000 288.000 36.000 36.000 re
+306.000 288.000 36.000 36.000 re
+342.000 288.000 36.000 36.000 re
+378.000 288.000 36.000 36.000 re
+f
+1.44 w
+306.000 590.400 m 306.000 547.200 l S
+306.000 244.800 m 306.000 201.600 l S
+111.600 396.000 m 154.800 396.000 l S
+457.200 396.000 m 500.400 396.000 l S
+90.000 100.800 m 522.000 100.800 l S
+90.000 111.600 m 90.000 90.000 l S
+BT /F1 9 Tf 87.12 72.00 Td (0) Tj ET
+162.000 111.600 m 162.000 90.000 l S
+BT /F1 9 Tf 159.12 72.00 Td (1) Tj ET
+234.000 111.600 m 234.000 90.000 l S
+BT /F1 9 Tf 231.12 72.00 Td (2) Tj ET
+306.000 111.600 m 306.000 90.000 l S
+BT /F1 9 Tf 303.12 72.00 Td (3) Tj ET
+378.000 111.600 m 378.000 90.000 l S
+BT /F1 9 Tf 375.12 72.00 Td (4) Tj ET
+450.000 111.600 m 450.000 90.000 l S
+BT /F1 9 Tf 447.12 72.00 Td (5) Tj ET
+522.000 111.600 m 522.000 90.000 l S
+BT /F1 9 Tf 519.12 72.00 Td (6) Tj ET
+BT /F1 22 Tf 54.00 720.00 Td (Marker ID 3) Tj ET
+BT /F1 10 Tf 54.00 694.80 Td (DICT_4X4_50   |   STK-14 Cage Row Vision reference marker) Tj ET
+BT /F1 11 Tf 54.00 666.00 Td (Black square = 3 in. Print at 100% / Actual size - NOT fit to page.) Tj ET
+BT /F1 11 Tf 54.00 648.00 Td (Measure the printed black square and put that value in config.yaml \(markers.size\).) Tj ET
+BT /F1 11 Tf 54.00 630.00 Td (Keep at least 1/2 in of white paper around the black square if you trim the page.) Tj ET
+BT /F1 11 Tf 54.00 172.80 Td (Tick marks point to the marker CENTER - that is the point to measure for markers.positions.) Tj ET
+BT /F1 11 Tf 90.00 54.00 Td (This bar must measure exactly 6.00 in. If it does not, printer scaling is on.) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 10 0 R >>
+endobj
+xref
+0 12
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000140 00000 n 
+0000000237 00000 n 
+0000002673 00000 n 
+0000002799 00000 n 
+0000005235 00000 n 
+0000005361 00000 n 
+0000007797 00000 n 
+0000007923 00000 n 
+0000010393 00000 n 
+trailer
+<< /Size 12 /Root 1 0 R >>
+startxref
+10521
+%%EOF

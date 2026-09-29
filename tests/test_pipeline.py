@@ -49,14 +49,35 @@ def test_no_paper_reports_not_detected(pipe, scene):
     _assert_no_values(m)
 
 
-def test_paper_partly_outside_area_is_rejected(pipe, scene):
-    m, _, _ = pipe.process(scene(pose=(29.0, 10.0, 0.0)))
+def test_paper_partly_outside_area_is_rejected(cfg, pipe, scene):
+    xs = [p[0] for p in cfg.markers.positions.values()]
+    ys = [p[1] for p in cfg.markers.positions.values()]
+    m, _, _ = pipe.process(scene(pose=(max(xs) - 1.0, sum(ys) / 4, 0.0)))
     _assert_no_values(m)
 
 
-def test_paper_over_a_marker_is_rejected(pipe, scene):
-    m, _, _ = pipe.process(scene(pose=(4.0, 4.0, 30.0)))
+def test_paper_over_a_marker_is_rejected(cfg, pipe, scene):
+    mx, my = cfg.markers.positions[min(cfg.markers.positions)]
+    m, _, _ = pipe.process(scene(pose=(mx + 5.0, my + 4.0, 30.0)))
     _assert_no_values(m)
+
+
+def test_untrimmed_marker_sheets_are_ignored(pipe, scene):
+    # Markers left on full letter pages: the page corners inside the area must not
+    # become candidates or break detection of a paper placed clear of them.
+    m, _, det = pipe.process(scene(pose=(17.5, 12.5, 15.0), marker_sheets=True))
+    assert m.valid, m.status_text
+    assert m.center_x == pytest.approx(17.5, abs=POS_TOL) and m.center_y == pytest.approx(12.5, abs=POS_TOL)
+    m, _, _ = pipe.process(scene(pose=None, marker_sheets=True))
+    assert not m.object_detected and "no paper-sized object" in m.detection_reason
+
+
+def test_paper_touching_a_marker_sheet_is_rejected(cfg, pipe, scene):
+    mx, my = cfg.markers.positions[min(cfg.markers.positions)]
+    # Paper edge overlaps the page (page reaches 4.25 in right of the marker center).
+    m, _, _ = pipe.process(scene(pose=(mx + 9.0, my + 9.0, 0.0), marker_sheets=True))
+    _assert_no_values(m)
+    assert "marker sheet" in m.detection_reason
 
 
 def test_two_papers_is_ambiguous(pipe, scene):

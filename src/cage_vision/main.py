@@ -47,8 +47,12 @@ def cmd_live(args, cfg: Config) -> int:
     pipe = Pipeline(cfg)
     log = RunLogger(cfg.output.directory, args.label)
     print(f"logging to {log.dir}")
+    s = cam.actual_settings()
+    if (s["width"], s["height"]) != (cfg.camera.width, cfg.camera.height):
+        print(f"WARNING: asked for {cfg.camera.width}x{cfg.camera.height}, camera gave {s['width']}x{s['height']}",
+              file=sys.stderr)
     print("keys: SPACE = record a placement (averages frames_per_placement frames), "
-          "S = save this frame, Q/ESC = quit + write report")
+          "S = save this frame, C = camera settings dialog, Q/ESC = quit + write report")
     placement, win = 0, "cage-vision (STK-14 P0)"
     cv2.namedWindow(win, cv2.WINDOW_NORMAL)
     try:
@@ -59,11 +63,14 @@ def cmd_live(args, cfg: Config) -> int:
                 break
             m, cal, det = pipe.process(frame)
             view = draw(frame, m, cal, det, cfg)
-            _text_footer(view, f"placements recorded: {placement}   SPACE record  S save  Q quit")
+            _text_footer(view, f"placements: {placement}   focus sharpness: {_sharpness(frame):.0f} (turn ring for max)"
+                               "   SPACE record  S save  C camera settings  Q quit")
             cv2.imshow(win, view)
             key = cv2.waitKey(1) & 0xFF
             if key in (ord("q"), 27):
                 break
+            if key == ord("c") and not cam.open_settings_dialog():
+                print("camera settings dialog not available (needs backend: dshow)", file=sys.stderr)
             if key == ord("s"):
                 log.log(m, "snap", int(cv2.getTickCount() % 100000), "camera", view, frame)
             if key == ord(" "):
@@ -84,6 +91,13 @@ def cmd_live(args, cfg: Config) -> int:
     if placement:
         print((log.dir / "report.md").read_text(encoding="utf-8") if _report(log.dir, cfg) else "")
     return 0
+
+
+def _sharpness(frame) -> float:
+    """Focus aid: variance of the Laplacian over the central half of the frame. Higher = sharper."""
+    g = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    h, w = g.shape
+    return float(cv2.Laplacian(g[h // 4:3 * h // 4, w // 4:3 * w // 4], cv2.CV_64F).var())
 
 
 def _text_footer(img, s):
@@ -149,42 +163,10 @@ def cmd_report(args, cfg: Config) -> int:
 
 
 def cmd_make_markers(args, cfg: Config) -> int:
-    """One marker per US-letter page as SVG with absolute inch dimensions (prints true size).
-
-    Black square = markers.size. Tick marks point at the marker center, which is
-    the point whose world coordinates go in config markers.positions.
-    """
-    out = Path(args.out)
-    out.mkdir(parents=True, exist_ok=True)
-    size_in = cfg.markers.size if cfg.units == "in" else cfg.markers.size / 25.4
-    d = cv2.aruco.getPredefinedDictionary(getattr(cv2.aruco, cfg.markers.dictionary))
-    n_cells = d.markerSize + 2                      # data bits + 1-cell black border each side
-    cell = size_in / n_cells
-    pw, ph = 8.5, 11.0
-    x0, y0 = (pw - size_in) / 2, (ph - size_in) / 2
-    cx, cy = pw / 2, ph / 2
-    for mid in sorted(cfg.markers.positions):
-        bits = cv2.aruco.generateImageMarker(d, mid, n_cells, borderBits=1)
-        rects = [f'<rect x="{x0 + c * cell:.5f}" y="{y0 + r * cell:.5f}" width="{cell:.5f}" height="{cell:.5f}"/>'
-                 for r in range(n_cells) for c in range(n_cells) if bits[r, c] < 128]
-        g, t = 0.15, 0.5
-        ticks = [(cx, y0 - g - t, cx, y0 - g), (cx, y0 + size_in + g, cx, y0 + size_in + g + t),
-                 (x0 - g - t, cy, x0 - g, cy), (x0 + size_in + g, cy, x0 + size_in + g + t, cy)]
-        svg = "\n".join([
-            f'<svg xmlns="http://www.w3.org/2000/svg" width="{pw}in" height="{ph}in" viewBox="0 0 {pw} {ph}">',
-            f'<rect width="{pw}" height="{ph}" fill="white"/>',
-            '<g fill="black" shape-rendering="crispEdges">', *rects, "</g>",
-            '<g stroke="black" stroke-width="0.02">',
-            *[f'<line x1="{a:.4f}" y1="{b:.4f}" x2="{c:.4f}" y2="{e:.4f}"/>' for a, b, c, e in ticks], "</g>",
-            f'<text x="0.75" y="1.0" font-family="Arial" font-size="0.28">Marker ID {mid} - {cfg.markers.dictionary}</text>',
-            f'<text x="0.75" y="1.4" font-family="Arial" font-size="0.18">Black square = {cfg.markers.size} {cfg.units}. '
-            "Print at 100% / Actual size (no fit-to-page), then measure it.</text>",
-            '<text x="0.75" y="1.7" font-family="Arial" font-size="0.18">Tick marks point to the marker center '
-            "- measure THAT point for config markers.positions.</text>",
-            "</svg>"])
-        path = out / f"marker_{mid}.svg"
-        path.write_text(svg, encoding="utf-8")
-        print(f"wrote {path}")
+    """Printable markers: one vector PDF, one US-letter page per marker, true size at 100%."""
+    from .markers import write_marker_pdf
+    path = write_marker_pdf(cfg, Path(args.out) / "markers.pdf")
+    print(f"wrote {path}  ({len(cfg.markers.positions)} pages, black square = {cfg.markers.size:g} {cfg.units})")
     return 0
 
 

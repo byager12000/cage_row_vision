@@ -44,6 +44,7 @@ class SceneSpec:
     paper_gray: int = 225
     light_gradient: float = 0.25       # fractional brightness change across the image
     jpeg_quality: int = 92
+    marker_sheets: bool = False        # draw each marker on an untrimmed 8.5 x 11 in white page
 
 
 def _bounds(lay: SynthLayout) -> tuple[float, float, float, float]:
@@ -91,6 +92,9 @@ def render(lay: SynthLayout, spec: SceneSpec, rng: np.random.Generator,
     for mid, (mx, my) in lay.markers.positions.items():
         if mid in spec.hide_markers:
             continue
+        if spec.marker_sheets:
+            pg = world_poly(np.array([[mx - 4.25, my - 5.5], [mx + 4.25, my + 5.5]]))
+            cv2.rectangle(canvas, tuple(pg[0].astype(int)), tuple(pg[1].astype(int)), 240, -1)
         # White quiet zone, then the marker, axis-aligned in world.
         qz = world_poly(np.array([[mx - msz * 0.8, my - msz * 0.8], [mx + msz * 0.8, my + msz * 0.8]]))
         cv2.rectangle(canvas, tuple(qz[0].astype(int)), tuple(qz[1].astype(int)), 245, -1)

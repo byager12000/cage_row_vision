@@ -19,3 +19,18 @@ Don't turn Smart App Control off for this; it's a system security setting.
 
 `Get-PnpDevice`: *Surface Camera Front* and *Surface IR Camera Front* only. No USB webcam is attached
 yet. The laptop camera can't serve as a fixed overhead camera.
+
+## Known issue: venv .exe launchers blocked by Smart App Control (2026-09-28)
+
+`uv run pytest` and `uv run cage-vision` began failing with "An Application Control policy has
+blocked this file (os error 4551)". The blocked files are the small `.exe` launchers uv generates in
+`.venv\Scripts`; `python.exe` itself is not blocked. Use the module form instead:
+
+- `uv run python -m pytest -q`
+- `uv run python -m cage_vision <command>`
+
+## Bench camera
+
+Stopmotion Explosion HD Pro 1080p on DirectShow index 2 (0 and 1 are the Surface cameras).
+When MJPG was requested, the camera still reported YUY2 at 1920×1080. That works, but expect
+a low live frame rate over USB 2.0, which is fine for stationary measurement.

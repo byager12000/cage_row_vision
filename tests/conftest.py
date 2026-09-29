@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 @pytest.fixture(scope="session")
 def cfg() -> Config:
-    return load_config(ROOT / "config.yaml")
+    return load_config(ROOT / "tests" / "fixtures" / "config.yaml")
 
 
 @pytest.fixture(scope="session")

@@ -1,11 +1,8 @@
-# STK-14 Cage Row Vision — Phase 1 bench configuration
+# TEST FIXTURE - fixed layout for the synthetic tests. Not the bench config (that is ../../config.yaml).
 #
-# Home bench, measured by Ben 2026-09-28 with a tape measure:
-#   marker rectangle 30 x 20 in center-to-center, diagonals ~36 in (30x20 predicts 36.06),
-#   printed squares 3 x 3 in, test sheet = US letter 11 x 8.5 in.
 
 units: in                 # all lengths below are in these units (in | mm)
-layout_confirmed: true
+layout_confirmed: false
 
 camera:
   index: 2                # Stopmotion Explosion webcam on Ben's laptop (found 2026-09-28). `uv run python -m cage_vision list-cameras`
@@ -14,28 +11,28 @@ camera:
   width: 1920
   height: 1080
   lock_settings: true     # disable auto exposure / focus / white balance where supported
-  exposure: -5            # DirectShow log2 s. Chosen by sweep 2026-09-28 (home bench): brightest with 0% clipped; -4 jumps to 42% clipped
+  exposure: null          # set once lighting is final (camera-specific units; DirectShow is log2 seconds, e.g. -6)
   focus: null
   white_balance: null
   warmup_frames: 10
 
 markers:
   dictionary: DICT_4X4_50
-  # World coordinates of each marker CENTER (measured).
+  # World coordinates of each marker CENTER. MEASURE.
   # Convention used here: marker 0 is the origin, +X runs toward marker 1,
   # +Y runs toward marker 3. Any convention works as long as the numbers are real.
-  # 0 = bottom left, 1 = bottom right, 2 = top right, 3 = top left (as seen standing at the table).
+  # Placeholders sized for a ~40 x 30 in camera field (markers ~2.5 in in from each edge).
   positions:
     0: [0.0, 0.0]
-    1: [30.0, 0.0]
-    2: [30.0, 20.0]
-    3: [0.0, 20.0]
-  size: 3.0               # printed black square side (measured 3 in)
+    1: [35.0, 0.0]
+    2: [35.0, 25.0]
+    3: [0.0, 25.0]
+  size: 3.0               # printed black square side. MEASURE the print (printers scale).
   size_tolerance: 0.25    # fraction
 
 paper:
-  length: 11.0            # US letter, long side
-  width: 8.5              # US letter, short side
+  length: 11.0            # MEASURE (long side)
+  width: 8.5              # MEASURE (short side)
   size_tolerance: 0.5     # reject objects whose measured L/W differ from nominal by more than this
   polarity: bright        # paper lighter than table
   threshold: otsu

@@ -10,9 +10,14 @@ def _write(tmp_path, data):
     return p
 
 
-def test_shipped_config_loads(cfg):
+def test_fixture_config_loads(cfg):
     assert sorted(cfg.markers.positions) == [0, 1, 2, 3]
-    assert cfg.layout_confirmed is False  # placeholders until Ben measures the bench
+
+
+def test_bench_config_loads():
+    from pathlib import Path
+    bench = load_config(Path(__file__).resolve().parents[1] / "config.yaml")
+    assert sorted(bench.markers.positions) == [0, 1, 2, 3]
 
 
 def test_requires_four_markers(tmp_path):

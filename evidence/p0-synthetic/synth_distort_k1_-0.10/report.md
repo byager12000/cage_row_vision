@@ -1,25 +1,25 @@
-# Repeatability report — 20260926-203829_synth_distort_k1_-0.10
+# Repeatability report — 20260926-210931_synth_distort_k1_-0.10
 
 - Placements: 25 / 29 detected
 - Frames: 75 / 79 valid
 
 ## Frame-to-frame noise (paper stationary)
 - X std: mean +0.0004, std 0.0002, max |0.0009| in (n=25)
-- Y std: mean +0.0003, std 0.0002, max |0.0008| in (n=25)
-- Angle std: mean +0.0023, std 0.0013, max |0.0051| deg (n=25)
+- Y std: mean +0.0004, std 0.0002, max |0.0008| in (n=25)
+- Angle std: mean +0.0026, std 0.0011, max |0.0050| deg (n=25)
 
 ## Measured size vs nominal
-- Length error: mean +0.1075, std 0.0112, max |0.1217| in (n=25)
-- Width error: mean +0.0862, std 0.0118, max |0.1045| in (n=25)
+- Length error: mean +0.1000, std 0.0191, max |0.1328| in (n=25)
+- Width error: mean +0.0828, std 0.0109, max |0.1012| in (n=25)
 
 ## Error vs ground truth
-- X: mean +0.0026, std 0.0361, max |0.0602| in (n=25)
-- Y: mean -0.0033, std 0.0128, max |0.0323| in (n=25)
-- Radial: mean +0.0341, std 0.0178, max |0.0607| in (n=25)
-- Angle: mean +0.0001, std 0.0392, max |0.0852| deg (n=25)
+- X: mean -0.0182, std 0.0560, max |0.1042| in (n=25)
+- Y: mean -0.0002, std 0.0245, max |0.0426| in (n=25)
+- Radial: mean +0.0586, std 0.0253, max |0.1042| in (n=25)
+- Angle: mean -0.0109, std 0.0513, max |0.1516| deg (n=25)
 
 ## Failure reasons seen
-- 2 paper-like objects - ambiguous
 - no contrasting object in calibrated area
+- not 4-sided (8 vertices) - overlapping a marker or leaving the area?
 - reference marker(s) not found: [2]
 - touches edge of calibrated area

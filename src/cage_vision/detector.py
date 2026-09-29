@@ -136,10 +136,29 @@ def detect_paper(gray: np.ndarray, cal: Calibration, markers: MarkerConfig, pape
     binary = cv2.morphologyEx(binary, cv2.MORPH_OPEN, k)
     binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, k)
 
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     nominal_area = paper.length * paper.width
     passed: list[tuple[RectPose, np.ndarray]] = []
     rejected: list[tuple[np.ndarray, str]] = []
+
+    # Anything bright that touches a marker's masked zone is the sheet the marker is
+    # printed on (or paper merged with it), never a clean measurement. Drop it; report
+    # it only when it is paper-sized, i.e. the test sheet is touching a marker page.
+    halo = np.zeros(gray.shape, np.uint8)
+    for c in cal.marker_corners.values():
+        ctr = c.mean(axis=0)
+        cv2.fillConvexPoly(halo, (ctr + (c - ctr) * (1 + 2 * paper.marker_mask_pad) * 1.08).astype(np.int32), 255)
+    n_lbl, labels = cv2.connectedComponents(binary)
+    for lbl in np.unique(labels[(halo > 0) & (binary > 0)]):
+        if lbl == 0:
+            continue
+        blob = (labels == lbl).astype(np.uint8) * 255
+        binary[labels == lbl] = 0
+        cs, _ = cv2.findContours(blob, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        big = max(cs, key=cv2.contourArea)
+        if abs(cv2.contourArea(to_world(cal.H, big.reshape(-1, 2)).astype(np.float32))) >= 0.5 * nominal_area:
+            rejected.append((big, "touches a marker sheet - keep the paper clear of the marker pages"))
+
+    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
     for c in contours:
         world_area = abs(cv2.contourArea(to_world(cal.H, c.reshape(-1, 2)).astype(np.float32)))

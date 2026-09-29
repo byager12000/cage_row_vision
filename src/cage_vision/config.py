@@ -18,6 +18,7 @@ import yaml
 class CameraConfig:
     index: int = 0                  # OpenCV device index (see `cage-vision list-cameras`)
     backend: str = "dshow"          # dshow | msmf | any
+    fourcc: str | None = "MJPG"     # USB 2.0 webcams only deliver 1080p at full rate as MJPG
     width: int = 1920
     height: int = 1080
     lock_settings: bool = True      # turn off auto exposure / focus / white balance if the camera allows

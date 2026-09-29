@@ -9,24 +9,25 @@ Stack page: STK-14 *Cage Row Vision Alignment & Count* → Work Queue item
 
 **Scope:** Phase 1 only. No cages, conveyor, PLC, or machine action.
 
-## Status (2026-09-26)
+## Status (2026-09-28)
 
 | Part | State |
 |---|---|
-| Software (calibration, detection, geometry, overlay, logging, report) | Done, 31 tests pass |
+| Software (calibration, detection, geometry, overlay, logging, report) | Done, 35 tests pass |
 | Closed loop on synthetic images with exact ground truth | Done, see `evidence/p0-synthetic/` |
-| Physical bench repeatability run (20–30 placements) | **Blocked**: no USB webcam or bench yet (the laptop only has its Surface front/IR cameras) |
+| Home bench (Stopmotion Explosion 1080p, markers 30×20 in, exposure −5) | Set up and verified 2026-09-28: 20/20 frames valid, sheet noise 0.001 in / 0.007° |
+| Physical repeatability run (20–30 placements) | Next: `uv run python -m cage_vision live --label home1` |
 
 ## Commands (run in this folder)
 
 ```
-uv run pytest -q                                  # tests
-uv run cage-vision list-cameras                   # which camera index is the webcam
-uv run cage-vision make-markers                   # markers\marker_0..3.svg, print at 100%
-uv run cage-vision live --label bench1            # live view + repeatability capture
-uv run cage-vision images <folder>                # process saved images (manifest.json optional)
-uv run cage-vision synth <folder> [--k1 -0.1]     # generate synthetic test scenes with ground truth
-uv run cage-vision report runs\<run>              # recompute the report for a run
+uv run python -m pytest -q                                # tests
+uv run python -m cage_vision list-cameras                   # which camera index is the webcam
+uv run python -m cage_vision make-markers                   # markers\markers.pdf, print at 100%
+uv run python -m cage_vision live --label bench1            # live view + repeatability capture
+uv run python -m cage_vision images <folder>                # process saved images (manifest.json optional)
+uv run python -m cage_vision synth <folder> [--k1 -0.1]     # generate synthetic test scenes with ground truth
+uv run python -m cage_vision report runs\<run>              # recompute the report for a run
 ```
 
 A fresh shell may need `$env:Path = "C:\Users\byage\.local\bin;" + $env:Path` first.
@@ -72,28 +73,52 @@ Tests cover each case, including a good frame followed by bad frames.
 ## Synthetic closed-loop results
 
 The scenes are rendered with random perspective, blur, noise, a lighting gradient and JPEG
-compression. The scale is about 37 camera px/in, over a 30×20 in marker area at 1920×1080.
-Each run has 25 placements × 3–5 frames, plus 4 negative cases.
+compression. The layout matches the planned bench: a ~40×30 in camera field, 3 in markers,
+35×25 in between marker centers, and 1920×1080 at about 31 camera px/in. Each run has
+25 placements × 3–5 frames, plus 4 negative cases.
 
 | Case | Radial position error (max) | Angle error (max) | Size error (max) | Frame noise X/Y std | Negatives rejected |
 |---|---|---|---|---|---|
-| Ideal lens | 0.008 in | 0.011° | 0.003 in | < 0.001 in | 4/4 |
-| Barrel distortion k1 = −0.10 (cheap webcam) | 0.061 in | 0.085° | 0.12 in | < 0.001 in | 4/4 |
+| Ideal lens | 0.013 in | 0.024° | 0.002 in | < 0.001 in | 4/4 |
+| Barrel distortion k1 = −0.10 (cheap webcam) | 0.104 in | 0.15° | 0.13 in | < 0.001 in | 4/4 |
+
+An earlier run with a smaller 30×20 in marker area at about 37 px/in gave 0.008 in and 0.061 in.
 
 **What this means:** the measurement math is sound and unbiased. The limiting factor on a real
-bench will be the lens, not the algorithm. Even uncorrected distortion stays within the provisional
-±1/8 in and ±0.5° target. If the physical run shows position error growing toward the edges of the
-field, the next step is a one-time lens calibration (chessboard → `cv2.undistort`). It isn't built
-yet because P0 doesn't need it to meet the target.
+bench will be the lens, not the algorithm. Over a 40×30 in field, uncorrected webcam-grade
+distortion uses most of the provisional ±1/8 in (0.125 in) position budget. If the physical run
+shows position error growing toward the edges of the field, add a one-time lens calibration
+(chessboard → `cv2.undistort`). It isn't built yet. A 4K or 5 MP webcam (roughly 65–72 px/in over
+this field) would also add margin.
 
 **What it does not show:** real webcam noise, auto-exposure drift, real lighting, paper curl, or a
 table surface with texture or glare. Only the physical run can characterize those.
+
+## Bench camera: Stopmotion Explosion HD Pro 1080p
+
+- **Output:** 1920×1080 16:9, plug-and-play (UVC, no driver), USB 2.0. The config requests MJPG
+  (`camera.fourcc`). 1080p over USB 2.0 usually needs it; otherwise the camera drops to a low frame
+  rate or 720p. `live` warns if the resolution comes back different.
+- **Focus:** manual ring only, so there's no autofocus to fight. Set it once at the final mount
+  height and use the `focus sharpness` readout in `live`: turn the ring until the number peaks.
+  Then leave it alone, or tape it.
+- **Exposure and white balance:** adjustable. In `live`, press **C** to open the driver's
+  settings page (the same page AMCAP shows). Turn off auto exposure, auto white balance and any
+  "low light" or "backlight compensation" option (the product calls this "auto light correction").
+  Then set exposure so the paper is bright but not clipped to pure white.
+- **Field of view:** not published. Find the mount height empirically: raise the camera until
+  all four markers and their white borders are inside the frame. Run the long side of the image
+  along the 40 in direction. At 16:9, covering 30 in vertically means about 53 in horizontally,
+  or about 36 px/in.
+- **Mount:** the included clip and flex stand are not rigid. Use a rigid arm or bracket; the
+  support FAQ mentions tripod threads.
 
 ## Bench setup: what Ben needs to provide or measure
 
 1. **Webcam:** a 1080p-class USB webcam, rigidly mounted overhead. Run `list-cameras` and set
    `camera.index`.
-2. **Markers:** run `make-markers` and print the four SVGs at 100% / Actual size. **Measure the
+2. **Markers:** print `markers\markers.pdf` (4 pages) at 100% / Actual size. Check the 6 in bar on
+   each page first. **Measure the
    printed black square** and enter it as `markers.size`, because printers scale. Tape the markers
    flat around the work area. They must not move after you measure them.
 3. **Marker positions:** measure the world coordinates of each marker **center** (the tick marks point
@@ -107,7 +132,7 @@ table surface with texture or glare. Only the physical run can characterize thos
 
 ## Repeatability procedure (physical)
 
-`uv run cage-vision live --label bench1`, then for each of 20–30 placements:
+`uv run python -m cage_vision live --label bench1`, then for each of 20–30 placements:
 
 1. Move the paper to a new random position and angle, fully inside the markers.
 2. Take your hands out of view and press **Space**. The app records `frames_per_placement` frames
@@ -138,8 +163,8 @@ src/cage_vision/
   main.py                    CLI
 tests/                       pytest (geometry, config, end-to-end + failure cases)
 evidence/p0-synthetic/       reports, CSVs and sample annotated frames from the synthetic runs
-markers/                     printable marker SVGs
+markers/                     markers.pdf, the printable markers (vector, true size)
 ```
 
 `runs/` and `test_images/` are generated and not tracked. Regenerate `test_images/` with
-`cage-vision synth` (seeded, so the output is reproducible).
+`python -m cage_vision synth` (seeded, so the output is reproducible).
