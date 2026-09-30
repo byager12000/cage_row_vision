@@ -5,6 +5,14 @@ Each frame, their centers are found and a homography maps image pixels onto the
 table plane in real-world units. The calibration is rebuilt from every frame, so
 a bumped camera or a covered marker invalidates the result immediately instead
 of silently reusing an old transform.
+
+Four centers always fit a homography exactly, so the homography itself cannot
+reveal a moved marker or a wrong position entry. Two checks cover that:
+- marker size through the homography (catches gross layout errors, e.g. wrong units);
+- the setup baseline: each marker's image position is recorded once the bench is
+  verified, and every frame the four positions are compared after removing an
+  affine camera motion. A marker that moved relative to the others leaves a
+  residual; a small camera wobble does not.
 """
 
 from __future__ import annotations
@@ -26,6 +34,16 @@ class Calibration:
     marker_corners: dict[int, np.ndarray] = field(default_factory=dict)  # id -> (4,2) image px
     size_error: float | None = None      # worst |measured - printed| marker side, world units
     marker_sizes: dict[int, float] = field(default_factory=dict)          # measured side, world units
+    relative_move_px: float | None = None  # worst marker move vs baseline after removing camera motion
+    camera_shift_px: float | None = None   # largest raw marker shift vs baseline (camera or table moved)
+    warnings: list[str] = field(default_factory=list)
+
+
+def baseline_residual(centers: np.ndarray, base: np.ndarray) -> tuple[np.ndarray, float]:
+    """Per-marker residual (px) after a least-squares affine fit baseline -> current, and the raw max shift."""
+    X = np.c_[base, np.ones(len(base))]
+    A, *_ = np.linalg.lstsq(X, centers, rcond=None)
+    return np.linalg.norm(centers - X @ A, axis=1), float(np.linalg.norm(centers - base, axis=1).max())
 
 
 def _dictionary(name: str) -> cv2.aruco.Dictionary:
@@ -49,7 +67,9 @@ def _side_length(world_quad: np.ndarray) -> float:
     return float(np.mean([np.linalg.norm(world_quad[i] - world_quad[(i + 1) % 4]) for i in range(4)]))
 
 
-def calibrate(gray: np.ndarray, cfg: MarkerConfig, detector: cv2.aruco.ArucoDetector | None = None) -> Calibration:
+def calibrate(gray: np.ndarray, cfg: MarkerConfig, detector: cv2.aruco.ArucoDetector | None = None,
+              baseline: dict | None = None) -> Calibration:
+    """`baseline`: {"positions": {id: [x, y]}, "centers_px": {id: [u, v]}} from set-baseline, or None."""
     detector = detector or make_detector(cfg)
     corners, ids, _ = detector.detectMarkers(gray)
     wanted = set(cfg.positions)
@@ -81,9 +101,8 @@ def calibrate(gray: np.ndarray, cfg: MarkerConfig, detector: cv2.aruco.ArucoDete
     if H is None or not np.all(np.isfinite(H)):
         return Calibration(False, "could not compute perspective transform", marker_corners=marker_corners)
 
-    # Plausibility: four centers always fit a homography exactly, so the real check
-    # is the marker squares themselves. Their size in world units must match the
-    # printed size; a wrong position entry or a moved marker shows up here.
+    # Gross-error check only (wrong units, swapped IDs): marker size through the
+    # homography must match the print. Small bumps are caught by the baseline below.
     sizes = {i: _side_length(to_world(H, marker_corners[i])) for i in order}
     size_error = float(max(abs(s - cfg.size) for s in sizes.values()))
     cal = Calibration(True, "", H, np.linalg.inv(H), marker_corners, size_error, sizes)
@@ -93,6 +112,26 @@ def calibrate(gray: np.ndarray, cfg: MarkerConfig, detector: cv2.aruco.ArucoDete
     if bad:
         cal.valid = False
         cal.reason = (f"marker size implausible {bad} (expected {cfg.size} +/-{cfg.size_tolerance:.0%}); "
-                      "check marker positions in config or whether a marker moved")
+                      "check marker positions in config")
         return cal
+
+    if baseline is None:
+        if cfg.require_baseline:
+            cal.valid = False
+            cal.reason = "no setup baseline - verify the bench, then run: uv run python -m cage_vision set-baseline"
+        return cal
+    if {int(k): tuple(v) for k, v in baseline["positions"].items()} != {i: tuple(cfg.positions[i]) for i in order}:
+        cal.valid = False
+        cal.reason = "marker positions in config changed since the baseline - re-verify, then set-baseline again"
+        return cal
+    base = np.array([baseline["centers_px"][str(i)] for i in order], dtype=np.float64)
+    res, shift = baseline_residual(img_pts, base)
+    cal.relative_move_px, cal.camera_shift_px = float(res.max()), shift
+    if res.max() > cfg.max_relative_move_px:
+        cal.valid = False
+        cal.reason = (f"marker {order[int(np.argmax(res))]} moved relative to the others since the baseline "
+                      f"({res.max():.1f} px) - re-measure its position, then set-baseline again")
+        return cal
+    if shift > cfg.camera_shift_warn_px:
+        cal.warnings.append(f"camera or table moved {shift:.0f} px since baseline (markers still consistent)")
     return cal

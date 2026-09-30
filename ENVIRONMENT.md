@@ -34,3 +34,9 @@ blocked this file (os error 4551)". The blocked files are the small `.exe` launc
 Stopmotion Explosion HD Pro 1080p on DirectShow index 2 (0 and 1 are the Surface cameras).
 When MJPG was requested, the camera still reported YUY2 at 1920×1080. That works, but expect
 a low live frame rate over USB 2.0, which is fine for stationary measurement.
+
+## Home bench lighting (2026-09-28)
+
+Ordinary room lighting only, with no dedicated or diffused lights. The room got darker during the
+evening; image mean went from about 74 to 56 at exposure −5 with no clipping, and detection was unaffected.
+Lighting is not controlled on this bench, so a production station should add its own diffused light.

@@ -7,6 +7,8 @@ synthetic images, not claims about real-bench accuracy.
 import copy
 import csv
 
+import cv2
+
 import numpy as np
 import pytest
 
@@ -78,6 +80,51 @@ def test_paper_touching_a_marker_sheet_is_rejected(cfg, pipe, scene):
     m, _, _ = pipe.process(scene(pose=(mx + 9.0, my + 9.0, 0.0), marker_sheets=True))
     _assert_no_values(m)
     assert "marker sheet" in m.detection_reason
+
+
+def _baseline_for(cfg, img):
+    from cage_vision.baseline import make_baseline
+    from cage_vision.calibration import calibrate
+    cal = calibrate(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), cfg.markers)
+    return make_baseline(cfg, [{i: c.mean(axis=0) for i, c in cal.marker_corners.items()}], "test")
+
+
+def _bench(cfg):
+    c = copy.deepcopy(cfg)
+    c.markers.require_baseline = True
+    return c
+
+
+def test_bumped_marker_is_caught_by_baseline(cfg, scene):
+    c = _bench(cfg)
+    base = _baseline_for(c, scene(seed=5))
+    assert Pipeline(c, baseline=base).process(scene(seed=5))[0].valid
+    for bump in (0.25, 0.5):          # 0.25 in bump: silent 0.1 in error before the baseline check existed
+        m, cal, _ = Pipeline(c, baseline=base).process(scene(seed=5, marker_offsets={1: (bump, 0.0)}))
+        assert not m.calibration_ok and "moved relative to the others" in m.calibration_reason
+        _assert_no_values(m)
+
+
+def test_camera_shift_alone_is_not_an_error(cfg, scene):
+    c = _bench(cfg)
+    img = scene(seed=5)
+    base = _baseline_for(c, img)
+    shifted = cv2.warpAffine(img, np.float32([[1, 0, 25], [0, 1, -12]]), (img.shape[1], img.shape[0]),
+                             borderMode=cv2.BORDER_REPLICATE)
+    m, cal, _ = Pipeline(c, baseline=base).process(shifted)
+    assert m.valid, m.status_text
+    assert cal.relative_move_px < 0.5 and "camera or table moved" in m.warnings
+
+
+def test_missing_or_stale_baseline_invalidates(cfg, scene):
+    c = _bench(cfg)
+    m, _, _ = Pipeline(c, baseline=None).process(scene())
+    assert not m.calibration_ok and "no setup baseline" in m.calibration_reason
+    base = _baseline_for(c, scene())
+    c2 = copy.deepcopy(c)
+    c2.markers.positions = {**c2.markers.positions, 1: (c2.markers.positions[1][0] + 0.5, c2.markers.positions[1][1])}
+    m, _, _ = Pipeline(c2, baseline=base).process(scene())
+    assert not m.calibration_ok and "changed since the baseline" in m.calibration_reason
 
 
 def test_two_papers_is_ambiguous(pipe, scene):

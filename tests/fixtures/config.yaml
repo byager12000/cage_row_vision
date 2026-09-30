@@ -28,12 +28,16 @@ markers:
     2: [35.0, 25.0]
     3: [0.0, 25.0]
   size: 3.0               # printed black square side. MEASURE the print (printers scale).
-  size_tolerance: 0.25    # fraction
+  size_tolerance: 0.05    # fraction
+  baseline_file: null      # synthetic renders: each scene has its own camera; baseline tests pass one explicitly
+  require_baseline: false
+  max_relative_move_px: 1.0
+  camera_shift_warn_px: 20.0
 
 paper:
   length: 11.0            # MEASURE (long side)
   width: 8.5              # MEASURE (short side)
-  size_tolerance: 0.5     # reject objects whose measured L/W differ from nominal by more than this
+  size_tolerance: 0.25    # reject objects whose measured L/W differ from nominal by more than this
   polarity: bright        # paper lighter than table
   threshold: otsu
   fixed_threshold: 128

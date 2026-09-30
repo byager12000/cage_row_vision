@@ -45,6 +45,7 @@ class SceneSpec:
     light_gradient: float = 0.25       # fractional brightness change across the image
     jpeg_quality: int = 92
     marker_sheets: bool = False        # draw each marker on an untrimmed 8.5 x 11 in white page
+    marker_offsets: dict[int, tuple[float, float]] = field(default_factory=dict)  # bumped markers (world units)
 
 
 def _bounds(lay: SynthLayout) -> tuple[float, float, float, float]:
@@ -92,6 +93,7 @@ def render(lay: SynthLayout, spec: SceneSpec, rng: np.random.Generator,
     for mid, (mx, my) in lay.markers.positions.items():
         if mid in spec.hide_markers:
             continue
+        mx, my = mx + spec.marker_offsets.get(mid, (0, 0))[0], my + spec.marker_offsets.get(mid, (0, 0))[1]
         if spec.marker_sheets:
             pg = world_poly(np.array([[mx - 4.25, my - 5.5], [mx + 4.25, my + 5.5]]))
             cv2.rectangle(canvas, tuple(pg[0].astype(int)), tuple(pg[1].astype(int)), 240, -1)

@@ -27,6 +27,37 @@ def list_cameras(max_index: int = 6, backend: str = "dshow") -> list[dict]:
     return found
 
 
+def _sees_markers(index: int, backend: str, wanted: set[int], detector) -> bool:
+    cap = cv2.VideoCapture(index, _BACKENDS[backend])
+    try:
+        if not cap.isOpened():
+            return False
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        for _ in range(10):
+            ok, frame = cap.read()
+            if ok and frame is not None:
+                _, ids, _ = detector.detectMarkers(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY))
+                if ids is not None and wanted <= set(int(i) for i in ids.flatten()):
+                    return True
+        return False
+    finally:
+        cap.release()
+
+
+def resolve_camera_index(cam_cfg: CameraConfig, marker_ids: set[int], detector, max_index: int = 6) -> int:
+    """Windows renumbers cameras when one is unplugged/replugged. Use the configured index if it
+    sees all reference markers; otherwise scan and use the first camera that does."""
+    if _sees_markers(cam_cfg.index, cam_cfg.backend, marker_ids, detector):
+        return cam_cfg.index
+    for i in range(max_index):
+        if i != cam_cfg.index and _sees_markers(i, cam_cfg.backend, marker_ids, detector):
+            print(f"NOTE: camera {cam_cfg.index} does not see the markers; using camera {i} "
+                  f"(set camera.index: {i} in config.yaml to skip this search)")
+            return i
+    return cam_cfg.index      # nothing sees them: keep the configured one; frames will report the missing markers
+
+
 class Camera:
     def __init__(self, cfg: CameraConfig):
         self.cfg = cfg

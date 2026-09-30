@@ -26,6 +26,7 @@ class CameraConfig:
     focus: float | None = None
     white_balance: float | None = None
     warmup_frames: int = 10         # frames discarded after opening so exposure settles
+    height_above_table: float | None = None   # lens height, `units`; needed only for objects above the table
 
 
 @dataclass
@@ -36,20 +37,41 @@ class MarkerConfig:
     positions: dict[int, tuple[float, float]] = field(default_factory=dict)
     # Printed black-square side length, in `units`. Used as a plausibility check only.
     size: float = 2.0
-    size_tolerance: float = 0.25     # fraction; measured side may differ by this much
+    size_tolerance: float = 0.05     # fraction; catches gross layout errors (markers read ~1% small from blur)
+    # Setup baseline: marker image positions recorded once the bench is verified
+    # (`python -m cage_vision set-baseline`). A marker moving relative to the others
+    # (bumped page, re-taped) invalidates every frame until the setup is re-checked.
+    baseline_file: str | None = "baseline.json"
+    require_baseline: bool = True
+    max_relative_move_px: float = 1.0    # affine-fit residual; bench noise <= 0.34 px, a 0.1 in bump ~1 px
+    camera_shift_warn_px: float = 20.0   # whole-camera shift worth a warning (matters for height-corrected work)
 
 
 @dataclass
 class PaperConfig:
     length: float = 11.0             # nominal long side, `units`
     width: float = 8.5               # nominal short side, `units`
-    size_tolerance: float = 0.5      # units; measured L/W must be within this of nominal
+    size_tolerance: float = 0.25     # units; measured L/W must be within this of nominal
     polarity: str = "bright"         # bright = paper lighter than table; dark = darker
     threshold: str = "otsu"          # otsu | fixed
     fixed_threshold: int = 128
     min_rectangularity: float = 0.92  # contour area / fitted-quad area
     border_margin_px: int = 4        # a contour touching the image edge is rejected (partly out of view)
     marker_mask_pad: float = 0.35    # fraction of marker size added around each marker when masking
+
+
+@dataclass
+class CageConfig:
+    orientation: str = "upright"      # upright = open top up, rim is the outline seen from above
+    height: float = 5.0               # table to rim, `units`
+    rim_length: float = 11.6          # outer rim, as measured by the vision system
+    rim_width: float = 7.4
+    bottom_length: float = 11.25      # base footprint (used for the corner-based position check)
+    bottom_width: float = 7.0
+    size_tolerance: float = 0.4       # outline must be within this of the rim size to count as the cage
+    lift_threshold: float = 12.0      # grey levels above the local background that count as plastic
+    position_tolerance: float = 0.5   # IN when every footprint corner is within this of its target place
+    target_file: str = "cage_target.json"
 
 
 @dataclass
@@ -65,6 +87,7 @@ class Config:
     camera: CameraConfig = field(default_factory=CameraConfig)
     markers: MarkerConfig = field(default_factory=MarkerConfig)
     paper: PaperConfig = field(default_factory=PaperConfig)
+    cage: CageConfig = field(default_factory=CageConfig)
     output: OutputConfig = field(default_factory=OutputConfig)
 
     def validate(self) -> None:

@@ -13,10 +13,13 @@ Stack page: STK-14 *Cage Row Vision Alignment & Count* → Work Queue item
 
 | Part | State |
 |---|---|
-| Software (calibration, detection, geometry, overlay, logging, report) | Done, 35 tests pass |
+| Software (calibration, detection, geometry, overlay, logging, report) | Done, 43 tests pass |
 | Closed loop on synthetic images with exact ground truth | Done, see `evidence/p0-synthetic/` |
-| Home bench (Stopmotion Explosion 1080p, markers 30×20 in, exposure −5) | Set up and verified 2026-09-28: 20/20 frames valid, sheet noise 0.001 in / 0.007° |
-| Physical repeatability run (20–30 placements) | Next: `uv run python -m cage_vision live --label home1` |
+| Home bench (Stopmotion Explosion 1080p, markers 30×20 in, exposure −5) | Set up and verified 2026-09-28 |
+| Physical run `home1` (25 placements) | Done, see `evidence/p0-home-bench/SUMMARY.md` |
+| Independent review of the conclusions | Done. It found a silent bumped-marker failure; fixed with the setup baseline (worst undetected bump error 0.056 in) |
+| Phase 2 exploration: real cages (home dark wood; warehouse white belt with 3-D fit) | Notes in `evidence/p2-cage-exploration/NOTES.md` |
+| Cage position test tools (`cage-live`, `cage-check`) | First version: upright cage, brightness on a dark background, rim-only fit. Next: 3-D fit + colour detection for the white belt |
 
 ## Commands (run in this folder)
 
@@ -24,20 +27,35 @@ Stack page: STK-14 *Cage Row Vision Alignment & Count* → Work Queue item
 uv run python -m pytest -q                                # tests
 uv run python -m cage_vision list-cameras                   # which camera index is the webcam
 uv run python -m cage_vision make-markers                   # markers\markers.pdf, print at 100%
-uv run python -m cage_vision live --label bench1            # live view + repeatability capture
-uv run python -m cage_vision images <folder>                # process saved images (manifest.json optional)
+uv run python -m cage_vision set-baseline                   # record marker positions once the bench is verified
+uv run python -m cage_vision live --label home2             # live view + placement capture
+uv run python -m cage_vision images <folder>                # process saved bench images (manifest.json optional)
+uv run python -m cage_vision images <folder> --no-baseline  # ...synthetic scenes (no bench baseline)
 uv run python -m cage_vision synth <folder> [--k1 -0.1]     # generate synthetic test scenes with ground truth
 uv run python -m cage_vision report runs\<run>              # recompute the report for a run
+uv run python scripts/verify_marker_bump.py runs\<run>\frames   # real-frame check of the bumped-marker gate
+uv run python -m cage_vision cage-check [--teach]           # measure the cage now (optionally store it as the target)
+uv run python -m cage_vision cage-live --label cagetest      # guided +/-1/2 in position test (T teach, SPACE trial)
 ```
 
-A fresh shell may need `$env:Path = "C:\Users\byage\.local\bin;" + $env:Path` first.
+A fresh shell may need `$env:Path = "C:\Users\byage\.local\bin;" + $env:Path` first. Use the
+`python -m` form: Smart App Control blocks the `cage-vision.exe` and `pytest.exe` launchers here.
 
 ## How it works
 
 1. **Calibrate (every frame):** detect ArUco markers IDs 0–3 (`DICT_4X4_50`). Build a homography
-   from their image centers to the measured world positions in `config.yaml`. A plausibility
-   check requires each marker's size, measured through that homography, to match the printed size.
-   A wrong position entry or a bumped marker fails this check.
+   from their image centers to the measured world positions in `config.yaml`. Four centers always
+   fit a homography exactly, so two separate checks guard the layout:
+   - **Marker size** through the homography must be within ±5% of the print. This only catches gross
+     errors such as wrong units or swapped IDs.
+   - **Setup baseline** (`baseline.json`, written by `set-baseline` once the bench is verified). Every
+     frame, the four marker image positions are compared with the baseline after removing an affine
+     camera motion. If any marker moved relative to the others by more than 1 px (a bumped or
+     re-taped page), the frame is invalid until the setup is re-checked and the baseline re-taken.
+     Normal bench noise is ≤0.35 px, even with about 3 px of camera wobble. On real frames, bumps of
+     about 0.14 in or more are always caught. Smaller bumps can slip through, but the worst error they
+     caused was 0.056 in (`scripts/verify_marker_bump.py`). Editing `markers.positions` after the
+     baseline was taken is also rejected.
 2. **Segment:** Otsu threshold inside the quadrilateral through the marker centers, with the markers
    masked out. The threshold also needs at least 30 grey levels of contrast, otherwise it reports
    "no object".
@@ -61,6 +79,7 @@ reason is shown. The failure causes are:
 
 - a missing or duplicated marker
 - an implausible marker size
+- no setup baseline, a baseline taken for a different layout, or a marker that moved since the baseline
 - no contrasting object
 - an object that isn't 4-sided (for example, overlapping a marker)
 - an object that touches the area edge
@@ -68,7 +87,8 @@ reason is shown. The failure causes are:
 - an object of the wrong size
 - more than one candidate
 
-Tests cover each case, including a good frame followed by bad frames.
+Tests cover each case, including a good frame followed by bad frames. Failed frames are saved as
+images during `live`, so their cause can be checked afterwards.
 
 ## Synthetic closed-loop results
 
@@ -129,22 +149,28 @@ table surface with texture or glare. Only the physical run can characterize thos
 5. **Lighting:** diffused LED, no glare on the paper. Once it's settled, set `camera.exposure` so
    exposure is locked. The `live` command prints what the camera actually accepted.
 6. Set `layout_confirmed: true`. Until you do, the overlay shows a warning on every frame.
+7. Check a few placements in `live`, then run `set-baseline` with nothing moving. If a marker page is
+   ever bumped or re-taped, re-measure its centre, update `markers.positions`, and run `set-baseline`
+   again. Until then, every frame reads INVALID "marker N moved".
 
-## Repeatability procedure (physical)
+## Placement procedure (physical)
 
-`uv run python -m cage_vision live --label bench1`, then for each of 20–30 placements:
+`uv run python -m cage_vision live --label home2`, then for each of 20–30 placements:
 
 1. Move the paper to a new random position and angle, fully inside the markers.
 2. Take your hands out of view and press **Space**. The app records `frames_per_placement` frames
-   (default 10) of the stationary paper.
+   (default 10, about 2 s) of the stationary paper. Keep clear until the console prints the result.
 
-Press **Q** to finish. `runs\<stamp>_bench1\report.md` then gives:
+Press **Q** to finish. `runs\<stamp>_home2\report.md` then gives:
 
-- frame-to-frame noise (X/Y/angle std while the paper is stationary)
-- measured size vs nominal across placements, which is an accuracy check that needs no ruler
-- every failure reason seen
+- frame-to-frame noise: X/Y/angle std within each burst. This is jitter, not re-placement
+  repeatability.
+- measured size vs nominal across placements, which is a consistency check that depends on the
+  sheet's true size
+- placements with invalid frames, and every failure reason seen
 
-Annotated images of each placement go in `frames\`.
+`frames\` holds images of frame 0 of each placement and of every failed frame. `run_info.json`
+records the config, baseline, camera settings and code version used.
 
 ## Layout
 
@@ -153,7 +179,11 @@ config.yaml                  every physical value (placeholders flagged)
 src/cage_vision/
   config.py                  typed config + validation
   camera.py                  capture, settings lock, camera listing
-  calibration.py             ArUco detection, homography, plausibility checks
+  calibration.py             ArUco detection, homography, marker-size + baseline checks
+  baseline.py                setup baseline load/make/save
+  camera_model.py            camera position from the homography + measured height (height correction)
+  cage.py                    cage outline, pose, target check (upright)
+  cage_live.py               cage position test: teach, guided moves, IN/OUT scoring
   detector.py                paper segmentation, sub-pixel edges, candidate checks
   geometry.py                rectangle pose on the world plane
   pipeline.py                one frame -> Measurement (stateless)
@@ -163,8 +193,12 @@ src/cage_vision/
   main.py                    CLI
 tests/                       pytest (geometry, config, end-to-end + failure cases)
 evidence/p0-synthetic/       reports, CSVs and sample annotated frames from the synthetic runs
+evidence/p0-home-bench/      home1 run, marker-bump check, baseline used (SUMMARY.md)
+evidence/p2-cage-exploration/  first real-cage images and measurements (NOTES.md)
+scripts/verify_marker_bump.py  real-frame check of the bumped-marker gate
+baseline.json                setup baseline for the current bench (set-baseline)
 markers/                     markers.pdf, the printable markers (vector, true size)
 ```
 
 `runs/` and `test_images/` are generated and not tracked. Regenerate `test_images/` with
-`python -m cage_vision synth` (seeded, so the output is reproducible).
+`uv run python -m cage_vision synth test_images\synth_basic` (seeded, so the output is reproducible).

@@ -64,7 +64,10 @@ def draw(frame: np.ndarray, m: Measurement, cal: Calibration, det: Detection, cf
     else:
         lines += ["X = ---", "Y = ---", "Angle = ---"]
     if m.marker_size_error is not None:
-        lines.append(f"marker size err {m.marker_size_error:.3f} {m.units}")
+        lines.append(f"marker size err {m.marker_size_error:.3f} {m.units}"
+                     + (f"   marker move {m.marker_move_px:.2f} px" if m.marker_move_px is not None else ""))
+    if m.warnings:
+        lines.append(m.warnings[:90])
     if not cfg.layout_confirmed:
         lines.append("LAYOUT NOT CONFIRMED - placeholder marker/paper values")
     y0, step = int(35 * scale), int(32 * scale)
@@ -72,6 +75,6 @@ def draw(frame: np.ndarray, m: Measurement, cal: Calibration, det: Detection, cf
     sub = img[0:y0 + step * len(lines) - int(10 * scale), 0:min(panel_w, img.shape[1])]
     sub[:] = (sub * 0.35).astype(np.uint8)
     for i, s in enumerate(lines):
-        _text(img, s, (15, y0 + i * step), color if i == 0 else (AMBER if "NOT CONFIRMED" in s else WHITE), 0.8 * scale)
+        _text(img, s, (15, y0 + i * step), color if i == 0 else (AMBER if ("NOT CONFIRMED" in s or "moved" in s) else WHITE), 0.8 * scale)
     cv2.rectangle(img, (0, 0), (img.shape[1] - 1, img.shape[0] - 1), color, 6)
     return img

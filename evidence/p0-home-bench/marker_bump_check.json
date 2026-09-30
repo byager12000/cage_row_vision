@@ -1,0 +1,71 @@
+{
+  "frames": 25,
+  "px_per_in": 41.0,
+  "max_relative_move_px": 1.0,
+  "rows": [
+    {
+      "bump_px": 2,
+      "bump_in": 0.049,
+      "caught": 0,
+      "total": 400,
+      "worst_undetected_position_error_in": 0.0272
+    },
+    {
+      "bump_px": 3,
+      "bump_in": 0.073,
+      "caught": 94,
+      "total": 400,
+      "worst_undetected_position_error_in": 0.0408
+    },
+    {
+      "bump_px": 4,
+      "bump_in": 0.098,
+      "caught": 270,
+      "total": 400,
+      "worst_undetected_position_error_in": 0.0545
+    },
+    {
+      "bump_px": 5,
+      "bump_in": 0.122,
+      "caught": 353,
+      "total": 400,
+      "worst_undetected_position_error_in": 0.0555
+    },
+    {
+      "bump_px": 6,
+      "bump_in": 0.146,
+      "caught": 400,
+      "total": 400,
+      "worst_undetected_position_error_in": 0.0
+    },
+    {
+      "bump_px": 7,
+      "bump_in": 0.171,
+      "caught": 400,
+      "total": 400,
+      "worst_undetected_position_error_in": 0.0
+    },
+    {
+      "bump_px": 8,
+      "bump_in": 0.195,
+      "caught": 400,
+      "total": 400,
+      "worst_undetected_position_error_in": 0.0
+    },
+    {
+      "bump_px": 10,
+      "bump_in": 0.244,
+      "caught": 400,
+      "total": 400,
+      "worst_undetected_position_error_in": 0.0
+    },
+    {
+      "bump_px": 12,
+      "bump_in": 0.293,
+      "caught": 400,
+      "total": 400,
+      "worst_undetected_position_error_in": 0.0
+    }
+  ],
+  "worst_undetected_position_error_in": 0.0555
+}

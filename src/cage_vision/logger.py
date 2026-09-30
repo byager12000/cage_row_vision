@@ -25,14 +25,16 @@ from .pipeline import Measurement
 
 FIELDS = ["placement", "frame", "source", "timestamp", "calibration_ok", "calibration_reason",
           "object_detected", "detection_reason", "center_x", "center_y", "rotation_deg", "length", "width",
-          "marker_size_error", "units", "gt_x", "gt_y", "gt_rotation_deg"]
+          "marker_size_error", "marker_move_px", "marker_sizes", "warnings", "units", "gt_x", "gt_y", "gt_rotation_deg"]
 
 
 class RunLogger:
-    def __init__(self, root: str | Path, label: str):
+    def __init__(self, root: str | Path, label: str, info: dict | None = None):
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         self.dir = Path(root) / f"{stamp}_{label}"
         (self.dir / "frames").mkdir(parents=True, exist_ok=True)
+        if info is not None:   # makes the run self-describing: config, baseline, camera, code version
+            (self.dir / "run_info.json").write_text(json.dumps(info, indent=2, default=str), encoding="utf-8")
         self.csv_path = self.dir / "measurements.csv"
         self._fh = open(self.csv_path, "w", newline="", encoding="utf-8")
         self._w = csv.DictWriter(self._fh, fieldnames=FIELDS)
@@ -139,10 +141,16 @@ def _fmt(s: dict, unit: str) -> str:
 
 def _markdown(r: dict) -> str:
     u = r["units"]
-    out = [f"# Repeatability report — {r['run']}", "",
+    partial = [p for p in r["per_placement"] if 0 < p["valid_frames"] < p["frames"]]
+    out = [f"# Frame noise and size-consistency report — {r['run']}", "",
+           "Frame-to-frame noise is the population std over each placement's burst (sheet untouched, ~2 s).",
+           "It is not re-placement repeatability, and there is no ground-truth position error unless gt columns exist.", "",
            f"- Placements: {r['placements_detected']} / {r['placements']} detected",
-           f"- Frames: {r['frames_valid']} / {r['frames']} valid", "",
-           "## Frame-to-frame noise (paper stationary)",
+           f"- Frames: {r['frames_valid']} / {r['frames']} valid", ""]
+    if partial:
+        out += ["Placements with some invalid frames: "
+                + ", ".join(f"{p['placement']} ({p['valid_frames']}/{p['frames']})" for p in partial), ""]
+    out += ["## Frame-to-frame noise (sheet stationary)",
            f"- X std: {_fmt(r['within_placement_std']['x'], u)}",
            f"- Y std: {_fmt(r['within_placement_std']['y'], u)}",
            f"- Angle std: {_fmt(r['within_placement_std']['angle'], 'deg')}", "",
