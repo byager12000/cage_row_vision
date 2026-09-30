@@ -116,11 +116,28 @@ def reconstruct_bottom(silhouette: np.ndarray, cam: CameraModel, belt: float, he
     return _densify(poly)[0]
 
 
-def find_cages(frame: np.ndarray, cal: Calibration, cam: CameraModel, cfg: Config) -> list[CageOutline]:
+def find_cages(frame: np.ndarray, cal: Calibration, cam: CameraModel, cfg: Config,
+               tape_mode: str | None = None) -> list[CageOutline]:
     cc = cfg.cage
     A, W, H = _frame(cfg)
     A_inv = np.linalg.inv(A)
     rect = cv2.warpPerspective(frame, A @ cal.H, (W, H), flags=cv2.INTER_LINEAR)
+    tape_mode = tape_mode or (cc.tape_mode if cc.ignore_color else "none")
+    tape = None
+    if tape_mode in ("subtract", "recolor"):
+        hsv = cv2.cvtColor(rect, cv2.COLOR_BGR2HSV)
+        tape_b = np.zeros(rect.shape[:2], bool)
+        for lo, hi in cc.ignore_hues:
+            tape_b |= (hsv[..., 0] >= lo) & (hsv[..., 0] <= hi)
+        tape_b &= (hsv[..., 1] > cc.ignore_min_sat) & (hsv[..., 2] > 40)
+        tape = cv2.dilate(tape_b.astype(np.uint8) * 255, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)))
+        if tape_mode == "recolor" and np.any(tape > 0):
+            # paint tape as belt: its own edges vanish, the cage walls next to / over it stay intact
+            Lab = cv2.cvtColor(rect, cv2.COLOR_BGR2LAB)
+            belt = (Lab[..., 0] > 200) & (tape == 0)
+            fill_col = np.median(rect[belt], axis=0) if np.any(belt) else np.array([240, 240, 240])
+            rect = rect.copy()
+            rect[tape > 0] = fill_col.astype(np.uint8)
     L = cv2.cvtColor(rect, cv2.COLOR_BGR2LAB)[..., 0]
     roi = np.zeros(L.shape, np.uint8)
     corners_px = cv2.perspectiveTransform(np.array(list(cfg.markers.positions.values()), float).reshape(-1, 1, 2), A).reshape(-1, 2)
@@ -133,17 +150,11 @@ def find_cages(frame: np.ndarray, cal: Calibration, cam: CameraModel, cfg: Confi
     ff_mask = np.zeros((H + 2, W + 2), np.uint8)
     cv2.floodFill(flood, ff_mask, (0, 0), 255)
     filled = cv2.bitwise_or(closed, cv2.bitwise_not(flood))
-    if cc.ignore_color:
-        # Reference tape (blue/green) laid against a cage gets swallowed into its outline. Remove strongly
-        # coloured non-amber pixels AFTER the wall loops are filled: the loop is never cut open, and the
-        # hull of what remains still spans the cage. (2026-09-30 run: blue tape touching the Jag 75 bent
-        # the outline and caused 4 false OUT calls.)
-        hsv = cv2.cvtColor(rect, cv2.COLOR_BGR2HSV)
-        tape = np.zeros(L.shape, bool)
-        for lo, hi in cc.ignore_hues:
-            tape |= (hsv[..., 0] >= lo) & (hsv[..., 0] <= hi)
-        tape &= (hsv[..., 1] > cc.ignore_min_sat) & (hsv[..., 2] > 40)
-        tape = cv2.dilate(tape.astype(np.uint8) * 255, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)))
+    if tape_mode == "subtract" and tape is not None:
+        # Reference tape (blue/green) laid against a cage gets swallowed into its outline. Remove it AFTER
+        # the wall loops are filled, so the loop is never cut open. (2026-09-30 first run: tape touching the
+        # Jag 75 bent the outline -> 4 false OUT calls.) Weak spot: tape seen THROUGH the cage cuts the cage
+        # region (second run, trials 9-10) -> "recolor" mode, and compare_best() tries both.
         filled[tape > 0] = 0
     filled = cv2.morphologyEx(filled, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15)))
     n, lab = cv2.connectedComponents(filled)
@@ -172,6 +183,8 @@ def find_cages(frame: np.ndarray, cal: Calibration, cam: CameraModel, cfg: Confi
         sil = _px_to_world(A_inv, hull_px)
         bottom = reconstruct_bottom(sil, cam, cc.base_height, cc.height, cc.taper)
         mom = cv2.moments(bottom.astype(np.float32))
+        if mom["m00"] <= 0:
+            continue                                   # degenerate outline (no area): skip, never divide by zero
         img = cv2.perspectiveTransform(sil.reshape(-1, 1, 2), cal.H_inv).reshape(-1, 2)
         out.append(CageOutline(bottom, sil, img, np.array([mom["m10"] / mom["m00"], mom["m01"] / mom["m00"]]),
                                float(cv2.contourArea(bottom.astype(np.float32)))))
@@ -196,6 +209,8 @@ def find_cages(frame: np.ndarray, cal: Calibration, cam: CameraModel, cfg: Confi
         hull_px = cv2.convexHull(pts).reshape(-1, 2).astype(float)
         sil = _px_to_world(A_inv, hull_px)
         mom = cv2.moments(sil.astype(np.float32))
+        if mom["m00"] <= 0:
+            continue
         img = cv2.perspectiveTransform(sil.reshape(-1, 1, 2), cal.H_inv).reshape(-1, 2)
         out.append(CageOutline(sil, sil, img, np.array([mom["m10"] / mom["m00"], mom["m01"] / mom["m00"]]),
                                float(cv2.contourArea(sil.astype(np.float32))), partial=True))
@@ -268,7 +283,12 @@ def register(taught: np.ndarray, live: np.ndarray, max_angle_deg: float = 30.0, 
 def compare(target: dict, live: CageOutline, tolerance: float) -> dict:
     """Deviation of a live cage from the taught outline: how far each taught outline point moved."""
     taught = np.array(target["bottom"])
-    R, t, ang, rms = register(taught, live.bottom)
+    fit = register(taught, live.bottom)
+    if fit is None:          # no rigid fit within +/-30 deg: not the taught cage, or badly occluded
+        nan = float("nan")
+        return {"dx": nan, "dy": nan, "dangle_deg": nan, "max_corner_dev": float("inf"), "in_position": False,
+                "fit_rms": float("inf")}
+    R, t, ang, rms = fit
     moved = taught @ R.T + t
     dev = np.linalg.norm(moved - taught, axis=1)
     c0 = np.array(target["centroid"])

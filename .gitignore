@@ -5,3 +5,4 @@ __pycache__/
 runs/
 test_images/
 cage_target*.json
+baseline_*_prev_*.json

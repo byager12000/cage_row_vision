@@ -45,6 +45,7 @@ class MarkerConfig:
     require_baseline: bool = True
     max_relative_move_px: float = 1.0    # affine-fit residual; bench noise <= 0.34 px, a 0.1 in bump ~1 px
     camera_shift_warn_px: float = 20.0   # whole-camera shift worth a warning (matters for height-corrected work)
+    edge_warn_px: float = 40.0           # warn when a marker's square is this close to the picture edge
 
 
 @dataclass
@@ -73,6 +74,7 @@ class CageConfig:
     ignore_color: bool = True         # drop reference tape etc. (strong blue/green) from cage outlines
     ignore_hues: list = field(default_factory=lambda: [[35, 135]])   # OpenCV hue ranges (0-180): green..blue
     ignore_min_sat: int = 80
+    tape_mode: str = "recolor"         # recolor = paint tape belt-white before edges; subtract = cut it out after filling
     rim_length: float = 11.6          # outer rim, as measured by the vision system
     rim_width: float = 7.4
     bottom_length: float = 11.25      # base footprint (used for the corner-based position check)

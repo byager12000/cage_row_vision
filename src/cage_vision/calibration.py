@@ -90,6 +90,13 @@ def calibrate(gray: np.ndarray, cfg: MarkerConfig, detector: cv2.aruco.ArucoDete
 
     order = sorted(wanted)
     img_pts = np.array([marker_corners[i].mean(axis=0) for i in order], dtype=np.float64)
+    h_img, w_img = gray.shape[:2]
+    edge_warn = []
+    for i in order:
+        c = marker_corners[i]
+        margin = min(c[:, 0].min(), c[:, 1].min(), w_img - 1 - c[:, 0].max(), h_img - 1 - c[:, 1].max())
+        if margin < cfg.edge_warn_px:
+            edge_warn.append(f"marker {i} is {margin:.0f} px from the edge of the picture - re-aim the camera to centre the tags")
     world_pts = np.array([cfg.positions[i] for i in order], dtype=np.float64)
 
     # Degenerate layout (three markers nearly collinear) gives a useless homography.
@@ -106,6 +113,7 @@ def calibrate(gray: np.ndarray, cfg: MarkerConfig, detector: cv2.aruco.ArucoDete
     sizes = {i: _side_length(to_world(H, marker_corners[i])) for i in order}
     size_error = float(max(abs(s - cfg.size) for s in sizes.values()))
     cal = Calibration(True, "", H, np.linalg.inv(H), marker_corners, size_error, sizes)
+    cal.warnings += edge_warn             # a tag at the frame edge gets clipped by the slightest camera bump
 
     lo, hi = cfg.size * (1 - cfg.size_tolerance), cfg.size * (1 + cfg.size_tolerance)
     bad = {i: round(s, 3) for i, s in sizes.items() if not lo <= s <= hi}

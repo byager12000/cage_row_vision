@@ -129,3 +129,31 @@ def test_reference_tape_touching_the_cage_is_ignored(wh_cfg):
     r7_raw = compare(target, pick(_pt_cages(off, "07"), target), 0.5)
     r7 = compare(target, pick(_pt_cages(wh_cfg, "07"), target), 0.5)
     assert r7["fit_rms"] < 0.06 < r7_raw["fit_rms"]
+
+
+# ---- run 2 (2026-09-30 afternoon): tape seen THROUGH the cage, and a no-fit must not crash ----
+
+PT2 = ROOT / "evidence" / "p2-cage-exploration" / "position-test-2026-09-30-run2"
+
+
+def _pt2(cfg, n):
+    img = cv2.imread(str(PT2 / "frames" / f"trial{n}_raw.jpg"))
+    _, cal, _ = Pipeline(cfg, baseline=None).process(img)
+    return find_cages(img, cal, estimate_camera(cal.H, (img.shape[1], img.shape[0]), cfg.camera.height_above_table), cfg)
+
+
+def test_tape_under_the_cage_does_not_cut_it(wh_cfg):
+    import json
+    target = json.loads((PT2 / "target.json").read_text())
+    r10 = compare(target, pick(_pt2(wh_cfg, "10"), target), 0.5)          # slid 1 in away, far end over the tape
+    assert r10["dy"] == pytest.approx(1.0, abs=0.2) and r10["fit_rms"] < 0.15 and not r10["in_position"]
+    r5 = compare(target, pick(_pt2(wh_cfg, "05"), target), 0.5)           # slid 1 in right inside the tape box
+    assert r5["dx"] == pytest.approx(1.0, abs=0.1) and abs(r5["dangle_deg"]) < 1.0
+
+
+def test_compare_without_a_rigid_fit_is_out_not_a_crash():
+    P = _densify(RECT)[0]
+    target = {"bottom": P.tolist(), "centroid": list(P.mean(axis=0))}
+    turned = types.SimpleNamespace(bottom=_move(P, 0, 0, 60.0), centroid=P.mean(axis=0), partial=False)
+    r = compare(target, turned, 0.5)                                         # 60 deg: beyond the +/-30 deg search
+    assert not r["in_position"]

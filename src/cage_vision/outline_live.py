@@ -9,6 +9,8 @@ from __future__ import annotations
 import csv
 import json
 import sys
+import time
+import traceback
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -145,13 +147,15 @@ def draw(frame, cal, cm, cages, reason, cfg: Config, target: dict | None, lines_
         lines = [f"NO CAGE: {reason or 'none near the taught target'}"[:95]]
     if partial:
         lines.append(f"{len(partial)} cage(s) at the edge of the marked area (orange) - move fully between the markers")
+    if cal is not None and getattr(cal, "warnings", None):
+        lines += [f"WARNING: {w}" for w in cal.warnings]
     lines += lines_extra
     scale = img.shape[1] / 1920
     y = int(40 * scale)
     band = img[0:y + int(34 * scale) * len(lines), :]
     band[:] = (band * 0.35).astype(np.uint8)
     for i, s in enumerate(lines):
-        c = col if i == 0 else (AMBER if s.startswith("NEXT") else WHITE)
+        c = col if i == 0 else (AMBER if s.startswith(("NEXT", "WARNING")) else WHITE)
         cv2.putText(img, s, (15, y + i * int(34 * scale)), cv2.FONT_HERSHEY_SIMPLEX, 0.85 * scale, BLACK, 5, cv2.LINE_AA)
         cv2.putText(img, s, (15, y + i * int(34 * scale)), cv2.FONT_HERSHEY_SIMPLEX, 0.85 * scale, c, 2, cv2.LINE_AA)
     cv2.rectangle(img, (0, 0), (img.shape[1] - 1, img.shape[0] - 1), col, 6)
@@ -187,6 +191,20 @@ def teach(meas, cfg: Config) -> dict | None:
     return t
 
 
+def _save_progress(run_dir: Path, rows: list[dict], target: dict | None, protocol: list, cfg: Config) -> None:
+    """Written after every move and every teach, so a crash or a closed window loses nothing."""
+    with open(run_dir / "trials.csv", "w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=TRIAL_FIELDS)
+        w.writeheader()
+        for r in rows:
+            w.writerow({f: r.get(f, "") for f in TRIAL_FIELDS})
+    if rows:
+        (run_dir / "summary.md").write_text(_summary(rows, cfg), encoding="utf-8")
+    if target is not None:
+        (run_dir / "target.json").write_text(json.dumps(target, indent=1), encoding="utf-8")
+    (run_dir / "protocol.json").write_text(json.dumps([asdict(t) for t in protocol], indent=1), encoding="utf-8")
+
+
 def run_live(cfg: Config, label: str, run_info: dict) -> int:
     from .camera import Camera
     if not cfg.camera.height_above_table:
@@ -199,11 +217,14 @@ def run_live(cfg: Config, label: str, run_info: dict) -> int:
     rows: list[dict] = []
     k = 0
     protocol = build_protocol(target, cfg)
+    _save_progress(log.dir, rows, target, protocol, cfg)
+    errors = 0
     win = "cage position test - taught outline (STK-14)"
     cv2.namedWindow(win, cv2.WINDOW_NORMAL)
     print("keys: T = teach target, SPACE = record the current trial, N = skip trial, Q = quit")
     try:
-        while True:
+      while True:
+        try:
             meas = measure(cam.read, pipe, cfg, 1)
             if not meas:
                 print("camera returned no frame", file=sys.stderr)
@@ -220,6 +241,7 @@ def run_live(cfg: Config, label: str, run_info: dict) -> int:
                 target = teach(measure(cam.read, pipe, cfg, 10), cfg) or target
                 protocol = build_protocol(target, cfg)          # twists depend on how the taught cage lies
                 k = 0
+                _save_progress(log.dir, rows, target, protocol, cfg)
             if key == ord("n") and k < len(protocol):
                 k += 1
             if key == ord(" ") and k < len(protocol) and target is not None:
@@ -242,23 +264,30 @@ def run_live(cfg: Config, label: str, run_info: dict) -> int:
                 else:
                     row["reason"] = burst[-1][4] if burst else "no frames"
                     print(f"trial {k + 1}: no cage near the target - {row['reason'] or 'moved more than 4 in?'}")
-                cv2.imwrite(str(log.dir / "frames" / f"trial{k + 1:02d}_raw.png"), burst[0][0])
-                cv2.imwrite(str(log.dir / "frames" / f"trial{k + 1:02d}_annotated.jpg"), draw(*burst[0], cfg, target, [t.label]))
+                if burst:
+                    cv2.imwrite(str(log.dir / "frames" / f"trial{k + 1:02d}_raw.png"), burst[0][0])
+                    cv2.imwrite(str(log.dir / "frames" / f"trial{k + 1:02d}_annotated.jpg"), draw(*burst[0], cfg, target, [t.label]))
                 rows.append(row)
                 k += 1
+                _save_progress(log.dir, rows, target, protocol, cfg)
+            errors = 0
+        except Exception:
+            # One bad frame (hands in view, a camera glitch) must not end the session. 2026-09-30: an
+            # unhandled error closed the window 3 moves before the end and the results were lost.
+            errors += 1
+            with open(log.dir / "errors.txt", "a", encoding="utf-8") as fh:
+                fh.write(time.strftime("%H:%M:%S ") + traceback.format_exc() + "\n")
+            print(f"frame error ({errors}) logged to {log.dir / 'errors.txt'} - continuing", file=sys.stderr)
+            if errors > 50:
+                print("too many consecutive errors - stopping", file=sys.stderr)
+                break
+            time.sleep(0.2)
     finally:
         cam.release()
         cv2.destroyAllWindows()
         log.close()
+    _save_progress(log.dir, rows, target, protocol, cfg)
     if rows:
-        with open(log.dir / "trials.csv", "w", newline="", encoding="utf-8") as fh:
-            w = csv.DictWriter(fh, fieldnames=TRIAL_FIELDS)
-            w.writeheader()
-            for r in rows:
-                w.writerow({f: r.get(f, "") for f in TRIAL_FIELDS})
-        (log.dir / "summary.md").write_text(_summary(rows, cfg), encoding="utf-8")
-        (log.dir / "target.json").write_text(json.dumps(target, indent=1), encoding="utf-8")
-        (log.dir / "protocol.json").write_text(json.dumps([asdict(t) for t in protocol], indent=1), encoding="utf-8")
         print((log.dir / "summary.md").read_text(encoding="utf-8"))
     print(f"run folder: {log.dir}")
     return 0
