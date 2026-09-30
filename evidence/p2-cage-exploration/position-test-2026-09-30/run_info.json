@@ -1,0 +1,136 @@
+{
+  "started": "2026-09-30T13:55:40",
+  "git": "7d0b419",
+  "src_uncommitted_changes": true,
+  "config": {
+    "units": "in",
+    "layout_confirmed": true,
+    "camera": {
+      "index": 0,
+      "backend": "dshow",
+      "fourcc": "MJPG",
+      "width": 1920,
+      "height": 1080,
+      "lock_settings": true,
+      "exposure": -7,
+      "focus": null,
+      "white_balance": null,
+      "warmup_frames": 10,
+      "height_above_table": 48.5
+    },
+    "markers": {
+      "dictionary": "DICT_4X4_50",
+      "positions": {
+        "0": [
+          0.0,
+          0.0
+        ],
+        "1": [
+          45.125,
+          0.0
+        ],
+        "2": [
+          45.125,
+          30.0
+        ],
+        "3": [
+          0.0,
+          30.0
+        ]
+      },
+      "size": 2.91,
+      "size_tolerance": 0.05,
+      "baseline_file": "baseline_warehouse.json",
+      "require_baseline": true,
+      "max_relative_move_px": 1.0,
+      "camera_shift_warn_px": 20.0
+    },
+    "paper": {
+      "length": 11.0,
+      "width": 8.5,
+      "size_tolerance": 0.25,
+      "polarity": "bright",
+      "threshold": "otsu",
+      "fixed_threshold": 128,
+      "min_rectangularity": 0.92,
+      "border_margin_px": 4,
+      "marker_mask_pad": 0.35
+    },
+    "cage": {
+      "method": "outline",
+      "orientation": "upright",
+      "height": 4.975,
+      "base_height": 0.375,
+      "taper": 0.15,
+      "edge_low": 40,
+      "edge_high": 100,
+      "min_area": 40.0,
+      "rim_length": 11.747,
+      "rim_width": 7.357,
+      "bottom_length": 11.31,
+      "bottom_width": 6.98,
+      "size_tolerance": 0.4,
+      "lift_threshold": 12,
+      "position_tolerance": 0.5,
+      "target_file": "cage_target_warehouse.json"
+    },
+    "output": {
+      "directory": "runs",
+      "frames_per_placement": 10
+    }
+  },
+  "baseline": {
+    "created": "2026-09-30T13:37:00",
+    "source": "camera 0, 15 frames",
+    "frames": 15,
+    "spread_px": 0.132,
+    "positions": {
+      "0": [
+        0.0,
+        0.0
+      ],
+      "1": [
+        45.125,
+        0.0
+      ],
+      "2": [
+        45.125,
+        30.0
+      ],
+      "3": [
+        0.0,
+        30.0
+      ]
+    },
+    "centers_px": {
+      "0": [
+        255.863,
+        1000.63
+      ],
+      "1": [
+        1647.596,
+        990.937
+      ],
+      "2": [
+        1575.419,
+        102.864
+      ],
+      "3": [
+        307.922,
+        149.724
+      ]
+    }
+  },
+  "camera_actual": {
+    "width": 1920,
+    "height": 1080,
+    "fourcc": "YUY2",
+    "fps": 0.0,
+    "auto_exposure": -1.0,
+    "exposure": -7.0,
+    "autofocus": 1.0,
+    "focus": 128.0,
+    "auto_wb": 1.0,
+    "wb_temperature": -1.0
+  }
+}

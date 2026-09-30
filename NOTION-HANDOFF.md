@@ -80,3 +80,17 @@ closed loop are complete.
   not yet in `cage.py`.
 - Pending: Ben's STL export of `allentown_jag75_cage_bottom.prt`; the warehouse config and baseline; the position
   test on the belt.
+
+## 2026-09-30 (afternoon): outline position test, Jag 75 CAD, first belt run
+
+- Taught-outline position test (`outline.py`, `outline_live.py`, `config_warehouse.yaml`) works for any cage shape.
+  It finds cages by wall edges, rebuilds the bottom footprint exactly from the outline's extent in each direction,
+  compares with point-to-line ICP, and calls IN when every taught outline point moved ≤ ½ in. A cage cut off at
+  the edge of the marked area is reported, not silently dropped.
+- Jag 75 STL from Ben (`cad/`). Height 4.975 in, draft about 2°, belt contact only 9.3 × 4.9 in (large bottom
+  fillet). The CAD silhouette fitted to the colour outline is within 0.11 in rms; the edge-only outline misses the
+  lower wall on the camera-facing side (0.39 in).
+- First belt run (Jag 75, 14 moves): 10/14 correct as run, all misses false OUT. The causes were blue tape
+  touching the cage, a +0.30 in start offset in the away series (the steps themselves were measured within
+  0.02–0.03 in) and twist instructions that assumed the wrong orientation. Fixed: tape rejection and guided moves
+  built from the taught outline. See `evidence/p2-cage-exploration/position-test-2026-09-30/ANALYSIS.md`.

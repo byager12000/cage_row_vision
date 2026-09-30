@@ -62,8 +62,17 @@ class PaperConfig:
 
 @dataclass
 class CageConfig:
+    method: str = "rim"               # rim = rectangle rim fit on a dark table; outline = any shape, taught outline (light belt)
     orientation: str = "upright"      # upright = open top up, rim is the outline seen from above
-    height: float = 5.0               # table to rim, `units`
+    height: float = 5.0               # bottom to rim, `units` (per cage type)
+    base_height: float = 0.0          # cage bottom (belt surface) above the marker plane
+    taper: float = 0.18               # rim overhang beyond the bottom, per side
+    edge_low: int = 40                # Canny thresholds for the outline method
+    edge_high: int = 100
+    min_area: float = 40.0            # smallest cage region, sq `units`
+    ignore_color: bool = True         # drop reference tape etc. (strong blue/green) from cage outlines
+    ignore_hues: list = field(default_factory=lambda: [[35, 135]])   # OpenCV hue ranges (0-180): green..blue
+    ignore_min_sat: int = 80
     rim_length: float = 11.6          # outer rim, as measured by the vision system
     rim_width: float = 7.4
     bottom_length: float = 11.25      # base footprint (used for the corner-based position check)

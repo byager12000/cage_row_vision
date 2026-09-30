@@ -252,15 +252,28 @@ def cmd_make_markers(args, cfg: Config) -> int:
     return 0
 
 
+def _cage_overrides(args, cfg: Config) -> None:
+    if getattr(args, "height", None):
+        cfg.cage.height = args.height
+
+
 def cmd_cage_live(args, cfg: Config) -> int:
-    from .cage_live import run_cage_live
+    _cage_overrides(args, cfg)
     _pick_camera(cfg)
+    if cfg.cage.method == "outline":
+        from .outline_live import run_live
+        return run_live(cfg, args.label, _run_info(cfg))
+    from .cage_live import run_cage_live
     return run_cage_live(cfg, args.label, _run_info(cfg))
 
 
 def cmd_cage_check(args, cfg: Config) -> int:
-    from .cage_live import run_cage_check
+    _cage_overrides(args, cfg)
     _pick_camera(cfg)
+    if cfg.cage.method == "outline":
+        from .outline_live import run_check
+        return run_check(cfg, args.teach, args.frames, args.save)
+    from .cage_live import run_cage_check
     return run_cage_check(cfg, args.teach, args.frames, args.save)
 
 
@@ -279,7 +292,9 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("report"); p.add_argument("run_dir")
     p = sub.add_parser("make-markers"); p.add_argument("--out", default="markers")
     p = sub.add_parser("cage-live"); p.add_argument("--label", default="cagetest")
+    p.add_argument("--height", type=float, help="cage height, bottom to rim (overrides cage.height)")
     p = sub.add_parser("cage-check"); p.add_argument("--teach", action="store_true")
+    p.add_argument("--height", type=float, help="cage height, bottom to rim (overrides cage.height)")
     p.add_argument("--frames", type=int, default=10); p.add_argument("--save")
     args = ap.parse_args(argv)
     cfg = load_config(args.config)

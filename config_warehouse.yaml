@@ -1,0 +1,70 @@
+# STK-14 Cage Row Vision - WAREHOUSE bench (white modular belt), set up 2026-09-30
+# Use with:  uv run python -m cage_vision --config config_warehouse.yaml <command>
+#
+# Ben's measurements (2026-09-30):
+#   markers taped to the floor, centres 45 1/8 x 30 in (0 bottom-left, 1 bottom-right, 2 top-right, 3 top-left)
+#   belt lies on the floor, 3/8 in thick; camera lens 48 1/8 in above the belt (= 48.5 in above the markers)
+#   marker tags printed at 97%: black squares measure 2.91 in
+
+units: in
+layout_confirmed: true
+
+camera:
+  index: 0                # searched automatically if this one cannot see the markers
+  backend: dshow
+  fourcc: MJPG
+  width: 1920
+  height: 1080
+  lock_settings: true
+  exposure: -7            # warehouse light: mean ~175-185, <2% clipped (2026-09-30)
+  focus: null
+  white_balance: null
+  warmup_frames: 10
+  height_above_table: 48.5   # lens above the MARKER plane (floor)
+
+markers:
+  dictionary: DICT_4X4_50
+  positions:
+    0: [0.0, 0.0]
+    1: [45.125, 0.0]
+    2: [45.125, 30.0]
+    3: [0.0, 30.0]
+  size: 2.91              # measured by Ben (printed at 97%)
+  size_tolerance: 0.05
+  baseline_file: baseline_warehouse.json
+  require_baseline: true
+  max_relative_move_px: 1.0
+  camera_shift_warn_px: 20.0
+
+paper:                    # P0 paper test only (not used for cages)
+  length: 11.0
+  width: 8.5
+  size_tolerance: 0.25
+  polarity: bright
+  threshold: otsu
+  fixed_threshold: 128
+  min_rectangularity: 0.92
+  border_margin_px: 4
+  marker_mask_pad: 0.35
+
+cage:
+  method: outline         # any cage shape: taught outline
+  orientation: upright
+  height: 4.975           # bottom to rim. Jag 75 = 4.975 (CAD), NexGen Edge = 5.0, OptiMice = 5.75 (Ben's tape); or --height
+  base_height: 0.375      # belt surface above the markers
+  taper: 0.15             # wall taper per side (Jag 75 CAD: ~2 deg draft); assumed for the others until their CAD is in
+  rim_length: 11.747      # Jag 75 CAD rim lip; rim/bottom sizes are used by the guided-trial "twist" moves
+  rim_width: 7.357
+  bottom_length: 11.31     # Jag 75 CAD body 1 in up (lowest wall the camera sees ~11.22 x 6.89)
+  bottom_width: 6.98
+  size_tolerance: 0.4
+  lift_threshold: 12
+  position_tolerance: 0.5 # IN when every point of the taught outline moved <= this
+  target_file: cage_target_warehouse.json
+  edge_low: 40
+  edge_high: 100
+  min_area: 40.0
+
+output:
+  directory: runs
+  frames_per_placement: 10

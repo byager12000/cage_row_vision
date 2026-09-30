@@ -19,7 +19,7 @@ Stack page: STK-14 *Cage Row Vision Alignment & Count* → Work Queue item
 | Physical run `home1` (25 placements) | Done, see `evidence/p0-home-bench/SUMMARY.md` |
 | Independent review of the conclusions | Done. It found a silent bumped-marker failure; fixed with the setup baseline (worst undetected bump error 0.056 in) |
 | Phase 2 exploration: real cages (home dark wood; warehouse white belt with 3-D fit) | Notes in `evidence/p2-cage-exploration/NOTES.md` |
-| Cage position test tools (`cage-live`, `cage-check`) | First version: upright cage, brightness on a dark background, rim-only fit. Next: 3-D fit + colour detection for the white belt |
+| Cage position test tools (`cage-live`, `cage-check`) | Home config: rim fit on dark wood. **Warehouse config (`config_warehouse.yaml`): any cage shape by wall edges, bottom footprint rebuilt with the camera model, taught-outline comparison (point-to-line ICP); IN when every taught outline point moved <= 1/2 in**. Reference tape (blue/green) is ignored; guided moves are built from the taught outline. First belt run: `evidence/p2-cage-exploration/position-test-2026-09-30/ANALYSIS.md` |
 
 ## Commands (run in this folder)
 
@@ -36,6 +36,8 @@ uv run python -m cage_vision report runs\<run>              # recompute the repo
 uv run python scripts/verify_marker_bump.py runs\<run>\frames   # real-frame check of the bumped-marker gate
 uv run python -m cage_vision cage-check [--teach]           # measure the cage now (optionally store it as the target)
 uv run python -m cage_vision cage-live --label cagetest      # guided +/-1/2 in position test (T teach, SPACE trial)
+uv run python -m cage_vision --config config_warehouse.yaml cage-live --label jag75_pos             # warehouse belt: any cage shape, taught outline
+uv run python -m cage_vision --config config_warehouse.yaml cage-live --height 5.75 --label optimice  # other cage heights (OptiMice 5.75 in)
 ```
 
 A fresh shell may need `$env:Path = "C:\Users\byage\.local\bin;" + $env:Path` first. Use the
@@ -183,7 +185,9 @@ src/cage_vision/
   baseline.py                setup baseline load/make/save
   camera_model.py            camera position from the homography + measured height (height correction)
   cage.py                    cage outline, pose, target check (upright)
-  cage_live.py               cage position test: teach, guided moves, IN/OUT scoring
+  cage_live.py               cage position test: teach, guided moves, IN/OUT scoring (rim method)
+  outline.py                 any-shape cages: edge outlines, footprint rebuild, taught-outline registration
+  outline_live.py            cage position test with a taught outline (warehouse)
   detector.py                paper segmentation, sub-pixel edges, candidate checks
   geometry.py                rectangle pose on the world plane
   pipeline.py                one frame -> Measurement (stateless)
@@ -195,6 +199,7 @@ tests/                       pytest (geometry, config, end-to-end + failure case
 evidence/p0-synthetic/       reports, CSVs and sample annotated frames from the synthetic runs
 evidence/p0-home-bench/      home1 run, marker-bump check, baseline used (SUMMARY.md)
 evidence/p2-cage-exploration/  first real-cage images and measurements (NOTES.md)
+cad/                         CAD models of the cages (Jag 75 STL) and their profiles (README.md)
 scripts/verify_marker_bump.py  real-frame check of the bumped-marker gate
 baseline.json                setup baseline for the current bench (set-baseline)
 markers/                     markers.pdf, the printable markers (vector, true size)
