@@ -19,7 +19,6 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
 
 import cv2
 import numpy as np
@@ -27,6 +26,7 @@ import numpy as np
 from .calibration import Calibration
 from .camera_model import CameraModel
 from .config import Config
+from .sitefiles import write_keeping_previous
 
 PPI = 20.0
 
@@ -324,5 +324,5 @@ def save_outline_target(cfg: Config, outlines: list[CageOutline]) -> dict:
             "centroid": [float(mom["m10"] / mom["m00"]), float(mom["m01"] / mom["m00"])],
             "area": float(cv2.contourArea(bottom.astype(np.float32))),
             "bottom": [[round(float(x), 4), round(float(y), 4)] for x, y in bottom]}
-    Path(cfg.cage.target_file).write_text(json.dumps(data, indent=1), encoding="utf-8")
+    write_keeping_previous(cfg.cage.target_file, json.dumps(data, indent=1))
     return data

@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 
 from .config import Config
+from .sitefiles import write_keeping_previous
 
 
 def load_baseline(cfg: Config) -> dict | None:
@@ -39,6 +40,4 @@ def make_baseline(cfg: Config, centers_per_frame: list[dict[int, np.ndarray]], s
 
 
 def save_baseline(cfg: Config, data: dict) -> Path:
-    p = Path(cfg.markers.baseline_file or "baseline.json")
-    p.write_text(json.dumps(data, indent=2), encoding="utf-8")
-    return p
+    return write_keeping_previous(cfg.markers.baseline_file or "baseline.json", json.dumps(data, indent=2))

@@ -24,6 +24,7 @@ from .calibration import Calibration
 from .camera_model import CameraModel
 from .config import Config
 from .geometry import angle_diff, normalize_angle
+from .sitefiles import write_keeping_previous
 
 PPI = 25.0          # rectified table-plane resolution for the cage search
 
@@ -147,5 +148,5 @@ def save_target(cfg: Config, poses: list[CagePose]) -> dict:
     data = {"center": [round(float(v), 4) for v in np.median(centers, axis=0)],
             "angle_deg": round(float(normalize_angle(np.median(angs))), 4),
             "frames": len(poses), "spread_in": round(float(np.linalg.norm(centers - np.median(centers, axis=0), axis=1).max()), 4)}
-    Path(cfg.cage.target_file).write_text(json.dumps(data, indent=2), encoding="utf-8")
+    write_keeping_previous(cfg.cage.target_file, json.dumps(data, indent=2))
     return data

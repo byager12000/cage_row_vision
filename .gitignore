@@ -4,5 +4,7 @@ __pycache__/
 .pytest_cache/
 runs/
 test_images/
+sites/
+backups/
 cage_target*.json
 baseline_*_prev_*.json

@@ -31,7 +31,7 @@ markers:
     3: [0.0, 30.0]
   size: 2.91              # measured by Ben (printed at 97%)
   size_tolerance: 0.05
-  baseline_file: baseline_warehouse.json
+  baseline_file: sites/warehouse/baseline.json   # sites/ = OneDrive Data\Cage-Row-Vision\sites (shared by both computers)
   require_baseline: true
   max_relative_move_px: 1.0
   camera_shift_warn_px: 20.0
@@ -60,7 +60,7 @@ cage:
   size_tolerance: 0.4
   lift_threshold: 12
   position_tolerance: 0.5 # IN when every point of the taught outline moved <= this
-  target_file: cage_target_warehouse.json
+  target_file: sites/warehouse/cage_target.json
   edge_low: 40
   edge_high: 100
   min_area: 40.0

@@ -155,6 +155,25 @@ table surface with texture or glare. Only the physical run can characterize thos
    ever bumped or re-taped, re-measure its centre, update `markers.positions`, and run `set-baseline`
    again. Until then, every frame reads INVALID "marker N moved".
 
+## Test locations (sites)
+
+Each test location has its own config file in git (`config_<site>.yaml`: marker positions and size,
+camera height, cage settings) and its own folder `sites\<site>\`. That folder holds what the program
+writes at that location: `baseline.json` (set-baseline) and `cage_target.json` (teach).
+`sites\` is a junction to OneDrive `Documents\Programs\Data\Cage-Row-Vision\sites`, so both computers
+see the same files. Saving a new baseline or target first copies the old one into
+`sites\<site>\backups\`.
+
+| Site | Config | Notes |
+|---|---|---|
+| warehouse | `config_warehouse.yaml` | white belt on the floor, markers 45 1/8 x 30 in, camera 48 1/8 in above the belt |
+| home bench | `config.yaml` | P0 only; its `baseline.json` stays in the project folder (tracked) |
+
+A new location needs a new config (copy the closest one, then set the marker positions, marker size,
+`camera.height_above_table` and `cage.height`), pointing `baseline_file` and `target_file` at
+`sites/<site>/`. At the location: check the view, `set-baseline`, then teach. A baseline or target
+from another location is never valid there.
+
 ## Placement procedure (physical)
 
 `uv run python -m cage_vision live --label home2`, then for each of 20–30 placements:
@@ -201,9 +220,10 @@ evidence/p0-home-bench/      home1 run, marker-bump check, baseline used (SUMMAR
 evidence/p2-cage-exploration/  first real-cage images and measurements (NOTES.md)
 cad/                         CAD models of the cages (Jag 75 STL) and their profiles (README.md)
 scripts/verify_marker_bump.py  real-frame check of the bumped-marker gate
-baseline.json                setup baseline for the current bench (set-baseline)
+baseline.json                setup baseline for the home bench (set-baseline)
+sites/                       per-location baselines + taught targets (OneDrive junction, not tracked)
 markers/                     markers.pdf, the printable markers (vector, true size)
 ```
 
-`runs/` and `test_images/` are generated and not tracked. Regenerate `test_images/` with
+`runs/`, `test_images/` and `sites/` are not tracked; they are junctions to OneDrive. Regenerate `test_images/` with
 `uv run python -m cage_vision synth test_images\synth_basic` (seeded, so the output is reproducible).
